@@ -2,26 +2,40 @@ const Policy = require('../models/policy.model');
 const { logger } = require('../config/logger');
 
 // GET /api/policies/search
-// Query: type, insurer, minPremium, maxPremium
+// Query params supported: type, model, insurer, minPrice, maxPrice
 const searchPolicies = async (req, res) => {
   try {
-    const { type, insurer, minPremium, maxPremium } = req.query;
+    const { type, model, insurer, minPrice, maxPrice } = req.query;
 
-    const filter = { isActive: true };
-    if (type) filter.type = new RegExp(`^${String(type).trim()}$`, 'i');
-    if (insurer) filter.insurer = new RegExp(String(insurer).trim(), 'i');
+    const filters = {};
 
-    const price = {};
-    if (minPremium !== undefined && minPremium !== '') price.$gte = Number(minPremium);
-    if (maxPremium !== undefined && maxPremium !== '') price.$lte = Number(maxPremium);
-    if (Object.keys(price).length) filter.premium = price;
+    if (type) {
+      // Exact match for type (case-insensitive)
+      filters.type = new RegExp(`^${String(type).trim()}$`, 'i');
+    }
 
-    const results = await Policy.find(filter).sort({ premium: 1 }).limit(100);
+    if (model) {
+      // Partial match on model
+      filters.model = new RegExp(String(model).trim(), 'i');
+    }
 
-    res.json({ results, count: results.length });
+    if (insurer) {
+      filters.insurer = new RegExp(String(insurer).trim(), 'i');
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      const priceFilter = {};
+      if (minPrice !== undefined && minPrice !== '') priceFilter.$gte = Number(minPrice);
+      if (maxPrice !== undefined && maxPrice !== '') priceFilter.$lte = Number(maxPrice);
+      if (Object.keys(priceFilter).length) filters.premium = priceFilter;
+    }
+
+    const policies = await Policy.find(filters).sort({ premium: 1 }).limit(1000);
+
+    return res.status(200).json({ success: true, count: policies.length, data: policies });
   } catch (error) {
-    logger.error('Policy search failed:', error);
-    res.status(500).json({ error: 'Policy search failed' });
+    logger.error('Error fetching policies:', error);
+    return res.status(500).json({ success: false, message: 'Error fetching policies', error: error.message });
   }
 };
 

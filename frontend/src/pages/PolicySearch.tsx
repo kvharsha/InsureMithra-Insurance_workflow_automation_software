@@ -6,14 +6,15 @@ import SearchIcon from '@mui/icons-material/Search';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 
 const PolicySearch: React.FC = () => {
-  const [filters, setFilters] = useState({ type: '', insurer: '', minPremium: '', maxPremium: '' });
+  const [filters, setFilters] = useState({ type: '', insurer: '', model: '', minPremium: '', maxPremium: '' });
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const policyTypes = useMemo(() => ['Health', 'Life', 'Auto', 'Home', 'Travel'], []);
+  // Limit types to the Epic 2 story types
+  const policyTypes = useMemo(() => ['2W', '4W', 'Health'], []);
   const insurers = useMemo(() => ['LIC', 'HDFC ERGO', 'ICICI Lombard', 'Tata AIG', 'SBI General'], []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,12 +29,15 @@ const PolicySearch: React.FC = () => {
       const query: any = {};
       if (filters.type) query.type = filters.type;
       if (filters.insurer) query.insurer = filters.insurer;
+      if (filters.model) query.model = filters.model;
       if (filters.minPremium) query.minPremium = filters.minPremium;
       if (filters.maxPremium) query.maxPremium = filters.maxPremium;
       const qs = new URLSearchParams(query).toString();
       navigate(qs ? `/policy-search?${qs}` : '/policy-search', { replace: true });
       const data = await policyAPI.searchPolicies(query);
-      setResults(data.results || []);
+      // Support both legacy { results } and new { success, count, data } formats
+      const items = data?.data ?? data?.results ?? [];
+      setResults(items || []);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Search failed');
     } finally {
@@ -47,18 +51,20 @@ const PolicySearch: React.FC = () => {
     const next = {
       type: params.get('type') || '',
       insurer: params.get('insurer') || '',
+      model: params.get('model') || '',
       minPremium: params.get('minPremium') || '',
       maxPremium: params.get('maxPremium') || ''
     };
-    setFilters(next);
-    const hasAny = next.type || next.insurer || next.minPremium || next.maxPremium;
+    setFilters(next as any);
+    const hasAny = next.type || next.insurer || next.model || next.minPremium || next.maxPremium;
     if (hasAny) {
       (async () => {
         try {
           setLoading(true);
           setError(null);
           const data = await policyAPI.searchPolicies(next as any);
-          setResults(data.results || []);
+          const items = data?.data ?? data?.results ?? [];
+          setResults(items || []);
         } catch (err: any) {
           setError(err.response?.data?.error || 'Search failed');
         } finally {
@@ -91,6 +97,9 @@ const PolicySearch: React.FC = () => {
                 </TextField>
               </div>
               <div style={{ flex: '1 1 220px', minWidth: 220 }}>
+                <TextField fullWidth label="Model" name="model" value={filters.model} onChange={handleChange} placeholder="e.g. Swift, Splendor" />
+              </div>
+              <div style={{ flex: '1 1 220px', minWidth: 220 }}>
                 <TextField fullWidth type="number" label="Min Premium" name="minPremium" value={filters.minPremium} onChange={handleChange}
                   InputProps={{ startAdornment: (<InputAdornment position="start"><MonetizationOnIcon /></InputAdornment>) }} />
               </div>
@@ -112,7 +121,7 @@ const PolicySearch: React.FC = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 1 }}>{p.name}</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} • {p.insurer}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} • {p.model ? `${p.model} • ` : ''}{p.insurer}</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600, color: '#1976d2' }}>Premium: ₹{p.premium}</Typography>
                   {p.sumAssured ? <Typography variant="body2">Sum Assured: ₹{p.sumAssured}</Typography> : null}
                   {p.description ? <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{p.description}</Typography> : null}

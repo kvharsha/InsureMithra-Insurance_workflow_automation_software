@@ -12,6 +12,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import PolicySearch from './pages/PolicySearch';
+import Policies from './pages/Policies';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -119,6 +120,8 @@ function App() {
                   <PolicySearch />
                 </ProtectedRoute>
               } />
+              {/* New public policies browser page (supports advanced filters) */}
+              <Route path="/policies" element={<Policies />} />
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
