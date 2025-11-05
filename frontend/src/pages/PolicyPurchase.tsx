@@ -124,7 +124,7 @@ const PolicyPurchase: React.FC = () => {
   };
 
   return (
-    <Box className="dashboard-container" sx={{ minHeight: '100vh', py: 4 }}>
+    <Box sx={{ minHeight: '100vh', py: 4, bgcolor: '#f5f5f5' }}>
       <Container maxWidth="md">
         <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>Purchase Policy</Typography>
         
