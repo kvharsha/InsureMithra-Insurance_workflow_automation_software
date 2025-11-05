@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Container, Typography, Button, CircularProgress } from '@mui/material';
+import { Box, Container, Typography, Button, CircularProgress, Card, CardContent, Divider, Chip } from '@mui/material';
 import { policyAPI, purchaseAPI } from '../services/api';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 const PolicyPurchase: React.FC = () => {
   const { policyId } = useParams();
@@ -84,46 +87,145 @@ const PolicyPurchase: React.FC = () => {
     }
   };
 
+  const getStatusDisplay = () => {
+    if (status === 'processing' || status === 'initiated') {
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+          <CircularProgress size={20} />
+          <Typography variant="body1">Processing payment (10-30 seconds)...</Typography>
+        </Box>
+      );
+    }
+    if (status === 'success') {
+      return (
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <CheckCircleIcon color="success" />
+            <Typography variant="h6" color="success.main">Payment Successful!</Typography>
+          </Box>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Your policy has been purchased. You can now download your policy receipt.
+          </Typography>
+          <Button variant="contained" color="success" onClick={handleDownload} startIcon={<CheckCircleIcon />}>
+            Download Policy Receipt (PDF)
+          </Button>
+        </Box>
+      );
+    }
+    if (status === 'failed') {
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+          <ErrorIcon color="error" />
+          <Typography variant="body1" color="error">Payment failed or timed out. Please try again.</Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
   return (
-    <Box sx={{ p: 4 }}>
-      <Container>
-        <Typography variant="h4">Purchase Policy</Typography>
-        {loading && <CircularProgress sx={{ mt: 2 }} />}
-        {error && <Typography color="error">{error}</Typography>}
+    <Box className="dashboard-container" sx={{ minHeight: '100vh', py: 4 }}>
+      <Container maxWidth="md">
+        <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>Purchase Policy</Typography>
+        
+        {error && (
+          <Card sx={{ mb: 3, bgcolor: '#ffebee' }}>
+            <CardContent>
+              <Typography color="error">{error}</Typography>
+            </CardContent>
+          </Card>
+        )}
+
+        {loading && !policy && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
         {!loading && policy && (
-          <div style={{ marginTop: 16 }}>
-            <Typography variant="h6">{policy.name}</Typography>
-            <Typography>{policy.type} • {policy.model} • {policy.insurer}</Typography>
-            <Typography sx={{ mt: 1, fontWeight: 600 }}>Premium: ₹{policy.premium}</Typography>
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>{policy.name}</Typography>
+              <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                <Chip label={policy.type} color="primary" size="small" />
+                <Chip label={policy.insurer} variant="outlined" size="small" />
+                {policy.model && <Chip label={policy.model} variant="outlined" size="small" />}
+              </Box>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">Coverage</Typography>
+                <Typography variant="body1">{policy.coverage}</Typography>
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">Tenure</Typography>
+                <Typography variant="body1">{policy.tenure}</Typography>
+              </Box>
 
-            <div style={{ marginTop: 18 }}>
-              <Button variant="contained" color="primary" onClick={handleSimulatePayment} disabled={!!purchaseId}>Simulate Payment</Button>
-            </div>
+              {policy.benefits && policy.benefits.length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Benefits</Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                    {policy.benefits.map((benefit: string, idx: number) => (
+                      <Chip key={idx} label={benefit} size="small" variant="outlined" />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h6" color="text.secondary">Total Premium</Typography>
+                <Typography variant="h4" color="primary" sx={{ fontWeight: 600 }}>₹{policy.premium}</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        )}
 
-            {purchaseId && (
-              <div style={{ marginTop: 16 }}>
-                <Typography>Purchase Status: {status}</Typography>
-                {status === 'processing' && <CircularProgress />}
-                {status === 'success' && (
-                  <div style={{ marginTop: 12 }}>
-                    <Typography color="primary">Payment successful! You can download your policy receipt.</Typography>
-                    <Button variant="contained" sx={{ mt: 1 }} onClick={handleDownload}>Download PDF</Button>
-                  </div>
-                )}
-                {status === 'failed' && (
-                  <Typography color="error">Payment failed or timed out. Please try again.</Typography>
-                )}
-              </div>
-            )}
-          </div>
+        {!loading && policy && (
+          <Card>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2 }}>Payment</Typography>
+              
+              {!purchaseId && (
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Click the button below to simulate a sandbox payment. The payment will process automatically in 10-30 seconds.
+                  </Typography>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    size="large"
+                    onClick={handleSimulatePayment} 
+                    disabled={!!purchaseId}
+                    fullWidth
+                  >
+                    Simulate Payment
+                  </Button>
+                </Box>
+              )}
+
+              {purchaseId && getStatusDisplay()}
+            </CardContent>
+          </Card>
         )}
 
         {!policy && !loading && (
-          <div style={{ marginTop: 16 }}>
-            <Typography>No policy found. Go back to search.</Typography>
-            <Button sx={{ mt: 2 }} variant="outlined" onClick={() => navigate('/policies')}>Back to Policies</Button>
-          </div>
+          <Card>
+            <CardContent>
+              <Typography variant="body1" sx={{ mb: 2 }}>No policy found. Please go back to search.</Typography>
+              <Button variant="outlined" onClick={() => navigate('/policy-search')}>Back to Policy Search</Button>
+            </CardContent>
+          </Card>
         )}
+
+        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+          <Button variant="outlined" onClick={() => navigate(-1)}>Back</Button>
+          <Button variant="text" onClick={() => navigate('/policy-search')}>Browse More Policies</Button>
+        </Box>
       </Container>
     </Box>
   );
