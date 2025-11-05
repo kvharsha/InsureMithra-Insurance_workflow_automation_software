@@ -14,6 +14,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import PolicySearch from './pages/PolicySearch';
 import Policies from './pages/Policies';
 import ComparePolicies from './pages/ComparePolicies';
+import PolicyPurchase from './pages/PolicyPurchase';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -124,6 +125,11 @@ function App() {
               <Route path="/compare" element={
                 <ProtectedRoute>
                   <ComparePolicies />
+                </ProtectedRoute>
+              } />
+              <Route path="/purchase/:policyId" element={
+                <ProtectedRoute>
+                  <PolicyPurchase />
                 </ProtectedRoute>
               } />
               {/* New public policies browser page (supports advanced filters) */}
