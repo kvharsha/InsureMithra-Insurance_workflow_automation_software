@@ -1,0 +1,41 @@
+{
+  "name": "insuremithra-backend",
+  "version": "1.0.0",
+  "description": "Insurance Workflow Automation System - Backend API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node start-server.js",
+    "dev": "nodemon start-server.js",
+    "server": "node server.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "insurance",
+    "workflow",
+    "automation",
+    "api"
+  ],
+  "author": "InsureMithra Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.10.0",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.4",
+    "pdfkit": "^0.13.0",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  }
+}
