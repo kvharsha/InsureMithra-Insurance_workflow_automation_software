@@ -587,3 +587,43 @@ This project is part of the Software Engineering course at PES University.
 
 **Note**: This is Epic 1 implementation. Future epics will build upon this authentication foundation to create a complete insurance workflow automation system.
 
+## ✅ Implemented update — Policy Search Backend (feature/policy-search-backend)
+
+What was implemented
+- Public search endpoint: `GET /api/policies/search` (no auth required). This allows browsing and filtering available policies.
+- Controller: `controllers/policy.controller.js` — implements `searchPolicies` with support for filter query params and safe parsing.
+- Routes: `routes/policy.routes.js` — exposes `/search` publicly and protects other policy routes behind authentication.
+- Model: `models/policy.model.js` — policy schema, indexes (type, insurer, text index on `model` and `name`) to speed searches.
+- Seed scripts: `utils/seed_policies.js` and `utils/seed_policies_upsert.js` to populate sample policies.
+
+Supported query parameters (all optional)
+- `type` — exact match (case-insensitive). Examples: `2W`, `4W`, `Health`, `Life`, `Travel`.
+- `model` — partial match on model/name (case-insensitive).
+- `insurer` — partial/insurer name match (case-insensitive).
+- `minPrice` / `maxPrice` — numeric filters applied to `premium`.
+
+Example request
+```
+GET /api/policies/search?type=4W&model=Swift&minPrice=2000&maxPrice=5000
+
+Response (200)
+{
+	"success": true,
+	"count": 2,
+	"data": [ /* array of policy objects */ ]
+}
+```
+
+How to seed example policies
+1. Make sure MongoDB is running and `.env` has `MONGODB_URI` set.
+2. Run the seeder (upsert style):
+```bash
+node utils/seed_policies_upsert.js
+```
+or use the programmatic helper from the server startup that calls `utils/seed_policies.js` (`seedPoliciesIfEmpty`).
+
+Notes
+- The search endpoint returns up to 1000 matching policies sorted by `premium` ascending.
+- The policy model includes text indexes on `model` and `name` for better partial searches.
+- This addition is part of Epic 2 (Policy Management) and is intended to be used by the frontend policy search pages (`frontend/src/pages/PolicySearch.tsx`).
+
