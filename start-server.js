@@ -65,11 +65,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/insuremit
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
+const purchaseRoutes = require('./routes/purchase.routes');
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/policies', policyRoutes);
+app.use('/api/purchase', purchaseRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -123,6 +125,7 @@ app.listen(PORT, () => {
   console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth/*`);
   console.log(`👤 Profile endpoints: http://localhost:${PORT}/api/profile/*`);
   console.log(`📄 Policy endpoints: http://localhost:${PORT}/api/policies/*`);
+  console.log(`💳 Purchase endpoints: http://localhost:${PORT}/api/purchase/*`);
 });
 
 module.exports = app;
