@@ -1,5 +1,6 @@
 const Policy = require('../models/policy.model');
 const { logger } = require('../config/logger');
+const mongoose = require('mongoose');
 
 // GET /api/policies/search
 // Query params supported: type, model, insurer, minPrice, maxPrice
@@ -40,5 +41,51 @@ const searchPolicies = async (req, res) => {
 };
 
 module.exports = { searchPolicies };
+
+// POST /api/policies/compare
+// Body: { policyIds: ["id1","id2", ...] }
+const comparePolicies = async (req, res) => {
+  try {
+    const { policyIds } = req.body;
+
+    if (!Array.isArray(policyIds)) {
+      return res.status(400).json({ success: false, message: 'policyIds must be an array of 2-3 policy IDs' });
+    }
+
+    if (policyIds.length < 2 || policyIds.length > 3) {
+      return res.status(400).json({ success: false, message: 'Provide at least 2 and at most 3 policy IDs to compare' });
+    }
+
+    // deduplicate check
+    const uniqueIds = [...new Set(policyIds)];
+    if (uniqueIds.length !== policyIds.length) {
+      return res.status(400).json({ success: false, message: 'Duplicate policy IDs are not allowed' });
+    }
+
+    // validate ObjectId format
+    const invalid = uniqueIds.filter((id) => !mongoose.Types.ObjectId.isValid(String(id)));
+    if (invalid.length) {
+      return res.status(400).json({ success: false, message: 'One or more policy IDs are invalid', invalid });
+    }
+
+    const policies = await Policy.find({ _id: { $in: uniqueIds } });
+
+    if (!policies || policies.length !== uniqueIds.length) {
+      const found = (policies || []).map((p) => p._id.toString());
+      const missing = uniqueIds.filter((id) => !found.includes(id));
+      return res.status(404).json({ success: false, message: 'Some policies were not found', missing });
+    }
+
+    // preserve client-provided order
+    const ordered = uniqueIds.map((id) => policies.find((p) => p._id.toString() === id));
+
+    return res.status(200).json({ success: true, count: ordered.length, data: ordered });
+  } catch (error) {
+    logger.error('Error comparing policies:', error);
+    return res.status(500).json({ success: false, message: 'Error comparing policies', error: error.message });
+  }
+};
+
+module.exports = { searchPolicies, comparePolicies };
 
 
