@@ -22,7 +22,7 @@ const register = async (req, res) => {
   try {
     console.log('Registration request body:', req.body);
     console.log('Request headers:', req.headers);
-    const { firstName, lastName, email, password, phone, dateOfBirth, address } = req.body;
+  const { firstName, lastName, email, password, phone, dateOfBirth, address, role } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -43,6 +43,11 @@ const register = async (req, res) => {
       dateOfBirth,
       address
     });
+
+    // Allow role if provided and valid (for demo/testing). Defaults to 'user'.
+    if (role && ['user', 'admin'].includes(role)) {
+      user.role = role;
+    }
 
     // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');

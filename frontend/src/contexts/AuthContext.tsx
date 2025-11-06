@@ -24,8 +24,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
+  register: (userData: RegisterData) => Promise<User | null>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateUser: (userData: User) => void;
@@ -38,6 +38,7 @@ interface RegisterData {
   lastName: string;
   email: string;
   password: string;
+  role?: string;
   phone?: string;
   dateOfBirth?: string;
   address?: {
@@ -97,6 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('token', response.token);
       setToken(response.token);
       setUser(response.user);
+      return response.user;
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login failed');
       throw err;
@@ -116,6 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('token', response.token);
       setToken(response.token);
       setUser(response.user);
+      return response.user;
     } catch (err: any) {
       console.error('Registration error:', err);
       console.error('Error response:', err.response?.data);

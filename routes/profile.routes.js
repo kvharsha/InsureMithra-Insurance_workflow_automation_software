@@ -5,6 +5,12 @@ const {
   updateProfile,
   changePassword,
   deactivateAccount,
+  getActivityLog,
+  getAllUsers,
+  getUserById,
+  updateUserRole,
+  toggleUserStatus,
+  getSystemStats
   getActivityLog
 } = require('../controllers/profile.controller');
 const { authenticate, requireAdmin, validateTokenFormat } = require('../middleware/auth');
@@ -113,5 +119,10 @@ router.post('/deactivate', deactivateAccountValidation, handleValidationErrors, 
 
 // Admin only routes
 router.get('/activity-log', requireAdmin, getActivityLog);
+router.get('/admin/users', requireAdmin, getAllUsers);
+router.get('/admin/users/:userId', requireAdmin, getUserById);
+router.put('/admin/users/:userId/role', requireAdmin, updateUserRole);
+router.put('/admin/users/:userId/status', requireAdmin, toggleUserStatus);
+router.get('/admin/stats', requireAdmin, getSystemStats);
 
 module.exports = router;

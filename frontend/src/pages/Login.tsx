@@ -70,6 +70,9 @@ const Login: React.FC = () => {
     if (!validateForm()) return;
 
     try {
+      const user = await login(formData.email, formData.password);
+      if (user?.role === 'admin') navigate('/admin');
+      else navigate('/dashboard');
       await login(formData.email, formData.password);
       navigate('/dashboard');
     } catch (err) {

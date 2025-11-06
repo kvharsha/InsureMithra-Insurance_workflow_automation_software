@@ -108,6 +108,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <Box className="dashboard-container">
+      <Container maxWidth="lg" className="dashboard-content" sx={{ mt: 3 }}>
       <AppBar position="static" elevation={0} sx={{ bgcolor: 'white', color: 'text.primary' }}>
         <Toolbar>
           <DashboardIcon sx={{ mr: 2, color: 'primary.main' }} />
@@ -152,6 +153,19 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <Box>
+                <Box display="flex" alignItems="center" gap={2} mb={1}>
+                  <Typography variant="h4">
+                    Welcome back, {user?.firstName}! 👋
+                  </Typography>
+                  {user?.role === 'admin' && (
+                    <Chip
+                      label="Admin"
+                      color="secondary"
+                      size="small"
+                      icon={<Shield />}
+                    />
+                  )}
+                </Box>
                 <Typography variant="h4" gutterBottom>
                   Welcome back, {user?.firstName}! 👋
                 </Typography>

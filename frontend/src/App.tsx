@@ -2,15 +2,15 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
-// Story B: Profile not available yet
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -94,6 +94,7 @@ function App() {
       <AuthProvider>
         <Router>
           <div className="App">
+            <AppHeader />
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
@@ -112,8 +113,11 @@ function App() {
                   <Profile />
                 </ProtectedRoute>
               } />
-              {/* Story B: Profile not available yet */}
-              <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/admin" element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
               
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -126,3 +130,53 @@ function App() {
 }
 
 export default App;
+
+const AppHeader: React.FC = () => {
+  const { user, logout } = useAuth();
+  const navigate = (path?: string) => {
+    // simple navigate using window.location to avoid importing router here
+    if (path) window.location.href = path;
+  };
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
+
+  return (
+    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', background: '#fff', borderBottom: '1px solid #eee', position: 'sticky', top: 0, zIndex: 1000 }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <img src="/logo192.png" alt="InsureMithra" style={{ height: 36, marginRight: 12 }} />
+        <h3 style={{ margin: 0, color: '#1976d2' }}>InsureMithra</h3>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {user ? (
+          <>
+            <div style={{ textAlign: 'right', marginRight: 8 }}>
+              <div style={{ fontSize: 14, color: '#333' }}>{user.firstName} {user.lastName}</div>
+              <div style={{ fontSize: 12, color: '#666' }}>Role: {user.role}</div>
+            </div>
+            <div>
+              <button onClick={handleMenuOpen} style={{ padding: 6, borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+                {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+              </button>
+              {anchorEl && (
+                <div style={{ position: 'absolute', right: 20, top: 56, background: '#fff', boxShadow: '0 6px 18px rgba(0,0,0,0.12)', borderRadius: 8 }}>
+                  <div style={{ padding: 8 }}>
+                    <div style={{ cursor: 'pointer', padding: '8px 12px' }} onClick={() => { handleMenuClose(); navigate('/profile'); }}>Profile</div>
+                    {user.role === 'admin' && (
+                      <div style={{ cursor: 'pointer', padding: '8px 12px' }} onClick={() => { handleMenuClose(); navigate('/admin'); }}>Admin Panel</div>
+                    )}
+                    <div style={{ cursor: 'pointer', padding: '8px 12px' }} onClick={() => { handleMenuClose(); logout(); navigate('/login'); }}>Logout</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <div />
+        )}
+      </div>
+    </header>
+  );
+};

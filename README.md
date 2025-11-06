@@ -1,6 +1,47 @@
 # InsureMithra - Insurance Workflow Automation System
 
-## Epic 1: User Authentication & Profile Management
+## Story 04: Role-Based Access Control
+
+This folder demonstrates **Role-Based Access Control (RBAC)** implementation with admin features and user management capabilities. This builds on Story 03 (Profile Management) by adding administrative controls and role-specific features.
+
+## 🆕 New Features in Story 04
+
+### Admin Dashboard
+- **User Management Interface**: View, edit, and manage all users
+- **System Statistics**: Real-time dashboard with user metrics
+- **Role Management**: Change user roles (user/admin)
+- **Account Control**: Activate/deactivate user accounts
+- **Activity Monitoring**: View user activity logs
+
+### Role-Based Features
+- **Admin-Only Endpoints**: Protected routes for administrative functions
+- **Permission Checks**: Middleware to verify user roles
+- **Self-Protection**: Admins cannot modify their own role/status
+- **Audit Logging**: Track all administrative actions
+
+## Story D — Role-Based Access Control (RBAC)
+
+Implemented artifacts for Story D (RBAC):
+
+- New middleware: `middleware/roleAuth.js` — provides `authorizeRoles(...roles)` and `requireAdmin` which verify JWT + role and write audit entries for granted/denied access attempts via `config/logger.js`.
+- Admin endpoints remain under `routes/profile.routes.js` (paths: `/api/profile/admin/*`) and are enforced with role checks.
+- Tests: `tests/roleAuth.test.js` validates admin access, regular-user denial (403), and unauthenticated requests (401).
+- Logger: `config/logger.js` now contains `auditLog.accessAttempt(...)` to record access attempts to `logs/audit.log`.
+
+Acceptance Criteria covered:
+
+1. Middleware verifies JWT token and decodes user role (uses existing `middleware/auth.js`/`authenticate`).
+2. Admin-only routes (`/api/profile/admin/*`) are accessible only to `role = "admin"`.
+3. Non-admin users receive HTTP 403 for restricted routes.
+4. All access attempts are logged in `logs/audit.log` via `auditLog.accessAttempt`.
+5. Integration tests exist in `tests/roleAuth.test.js` and `tests/rbac.test.js`.
+6. Code follows project style and uses central `config/logger.js` for audit logging.
+
+### Frontend Enhancements
+- **Admin Panel Route** (`/admin`): Full admin dashboard
+- **Role Indicator**: Visual badge showing admin status
+- **Conditional UI**: Admin menu options in user dashboard
+- **Responsive Tables**: User management with pagination
 
 A comprehensive MERN stack application for user authentication and profile management in the InsureMithra Insurance Workflow Automation System.
 
@@ -220,6 +261,36 @@ RATE_LIMIT_MAX_ATTEMPTS=5
 - `GET /api/auth/verify-email/:token` - Verify email address
 - `GET /api/auth/me` - Get current user info
 
+
+### Authentication
+- **JWT-based authentication** with configurable expiration
+- **Password hashing** using bcrypt with salt rounds
+- **Account lockout** after 5 failed login attempts (15-minute lockout)
+- **Rate limiting** on authentication endpoints
+
+### Password Security
+- Minimum 8 characters required
+- Must contain: uppercase, lowercase, number, special character
+- Secure password reset with time-limited tokens (15 minutes)
+- Email verification with 24-hour token validity
+
+### Audit Logging
+- All authentication events logged
+- Profile changes tracked
+- Failed login attempts recorded
+- Security events monitored with IP and user agent tracking
+
+## 📚 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
+- `GET /api/auth/verify-email/:token` - Verify email address
+- `GET /api/auth/me` - Get current user info
+
 ### Profile Management
 - `GET /api/profile` - Get user profile
 - `PUT /api/profile` - Update user profile
@@ -227,6 +298,36 @@ RATE_LIMIT_MAX_ATTEMPTS=5
 - `POST /api/profile/deactivate` - Deactivate account
 - `GET /api/profile/activity-log` - Get activity log (admin only)
 
+### Admin Endpoints (New in Story 04) 🔐
+- `GET /api/profile/admin/users` - Get all users with pagination (admin only)
+- `GET /api/profile/admin/users/:userId` - Get specific user details (admin only)
+- `PUT /api/profile/admin/users/:userId/role` - Update user role (admin only)
+- `PUT /api/profile/admin/users/:userId/status` - Toggle user active status (admin only)
+- `GET /api/profile/admin/stats` - Get system statistics (admin only)
+
+### System
+- `GET /api/health` - Health check
+
+## 🔐 Role-Based Access Control
+
+### User Roles
+- **User**: Standard user with access to personal profile and insurance features
+- **Admin**: Full access including user management and system statistics
+
+### Permission Model
+```javascript
+// Middleware checks
+authenticate()        // Verifies JWT token
+requireAdmin         // Requires admin role
+requireUser          // Requires user or admin role
+```
+
+### Protected Actions
+- View all users → Admin only
+- Change user roles → Admin only (cannot change own role)
+- Deactivate users → Admin only (cannot deactivate self)
+- View system stats → Admin only
+- Activity logs → Admin can view any user's logs
 ### System
 - `GET /api/health` - Health check
 
@@ -357,6 +458,52 @@ mongod
 
 **Backend Development:**
 ```bash
+```bash
+# Start MongoDB
+mongod
+
+# Create database (automatically created on first connection)
+# Database name: insuremithra
+```
+
+### Logging
+- **Error logs**: `logs/error.log`
+- **Combined logs**: `logs/combined.log`
+- **Audit logs**: `logs/audit.log`
+
+### Production Considerations
+- Use environment variables for all secrets
+- Set up proper MongoDB authentication
+- Configure email service for password reset
+- Set up log rotation and monitoring
+- Use HTTPS in production
+- Implement proper CORS configuration
+
+## 🚀 Complete Command Reference
+
+### Initial Setup (First Time Only)
+
+```bash
+# 1. Install backend dependencies
+npm install
+
+# 2. Install frontend dependencies
+cd frontend
+npm install
+cd ..
+
+# 3. Setup environment variables
+cp env.example .env
+# Edit .env with your MongoDB URI and JWT secret
+
+# 4. Start MongoDB (in a separate terminal)
+mongod
+```
+
+### Development Commands
+
+**Backend Development:**
+```bash
 # Start backend server with nodemon (auto-restart)
 npm run dev
 
@@ -367,6 +514,25 @@ npm start
 node simple-server.js
 
 # Run backend tests
+npm test
+```
+
+**Frontend Development:**
+```bash
+# Start React development server
+cd frontend
+npm start
+
+# Build frontend for production
+npm run build
+
+# Test frontend build
+npm run build
+
+# Run frontend tests
+npm test
+```
+
 npm test
 ```
 

@@ -101,6 +101,37 @@ export const profileAPI = {
     const response = await api.post('/profile/deactivate', { password });
     return response.data;
   },
+
+  // Admin endpoints
+  getAllUsers: async (params?: { page?: number; limit?: number; role?: string; search?: string }) => {
+    const response = await api.get('/profile/admin/users', { params });
+    return response.data;
+  },
+
+  getUserById: async (userId: string) => {
+    const response = await api.get(`/profile/admin/users/${userId}`);
+    return response.data;
+  },
+
+  updateUserRole: async (userId: string, role: string) => {
+    const response = await api.put(`/profile/admin/users/${userId}/role`, { role });
+    return response.data;
+  },
+
+  toggleUserStatus: async (userId: string, isActive: boolean) => {
+    const response = await api.put(`/profile/admin/users/${userId}/status`, { isActive });
+    return response.data;
+  },
+
+  getSystemStats: async () => {
+    const response = await api.get('/profile/admin/stats');
+    return response.data;
+  },
+
+  getActivityLog: async (userId?: string) => {
+    const response = await api.get('/profile/activity-log', { params: { userId } });
+    return response.data;
+  },
 };
 
 export default api;

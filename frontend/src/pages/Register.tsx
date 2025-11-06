@@ -25,6 +25,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
+    role: 'user',
     firstName: '',
     lastName: '',
     email: '',
@@ -73,6 +74,11 @@ const Register: React.FC = () => {
         [name]: '',
       }));
     }
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const validateForm = () => {
@@ -130,10 +136,14 @@ const Register: React.FC = () => {
       
       const dataToSend = {
         ...registrationData,
+        role: registrationData.role || 'user',
         address: Object.keys(cleanedAddress).length > 0 ? cleanedAddress : undefined
       };
       
       console.log('Sending registration data:', dataToSend);
+  const createdUser = await register(dataToSend);
+  if (createdUser?.role === 'admin') navigate('/admin');
+  else navigate('/dashboard');
       await register(dataToSend);
       navigate('/dashboard');
     } catch (err) {
@@ -202,6 +212,20 @@ const Register: React.FC = () => {
                 />
               </div>
             </div>
+
+            <TextField
+              select
+              fullWidth
+              SelectProps={{ native: true }}
+              label="Role"
+              name="role"
+              value={formData.role}
+              onChange={(e) => handleSelectChange(e as any)}
+              sx={{ my: 2 }}
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </TextField>
 
             <TextField
               fullWidth
