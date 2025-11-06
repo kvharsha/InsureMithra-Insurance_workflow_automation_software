@@ -34,3 +34,5 @@ async function sendEmail({ to, subject, html, text }) {
 }
 
 module.exports = { getTransporter, sendEmail };
+
+module.exports = require('../config/mailer');
