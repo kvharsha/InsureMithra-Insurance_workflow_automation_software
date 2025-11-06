@@ -7,8 +7,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-// Profile page is not available in Story A
-// Story A: Forgot/Reset not available yet
+// Story B: Profile not available yet
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -96,9 +97,8 @@ function App() {
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              {/* Story A: Password reset routes not available */}
-              <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
-              <Route path="/reset-password/:token" element={<Navigate to="/login" replace />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
               
               {/* Protected routes */}
               <Route path="/dashboard" element={
@@ -106,7 +106,7 @@ function App() {
                   <Dashboard />
                 </ProtectedRoute>
               } />
-              {/* Story A: Profile not available yet */}
+              {/* Story B: Profile not available yet */}
               <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
               
               {/* Default redirect */}

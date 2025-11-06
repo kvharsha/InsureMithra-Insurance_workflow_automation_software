@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/user.model');
 const { logger, auditLog } = require('../config/logger');
+const { sendEmail } = require('../config/mailer');
 
 /**
  * Generate JWT token
@@ -148,11 +149,12 @@ const login = async (req, res) => {
       await user.resetLoginAttempts();
     }
 
-      const freshUser = await User.findByIdAndUpdate(
-        user._id,
-        { lastLogin: new Date() },
-        { new: true }
-      ).select('-password');
+    // Update last login and fetch fresh user doc (without password)
+    const freshUser = await User.findByIdAndUpdate(
+      user._id,
+      { lastLogin: new Date() },
+      { new: true }
+    ).select('-password');
 
     // Generate JWT token
     const token = generateToken(user._id);
@@ -164,20 +166,20 @@ const login = async (req, res) => {
 
     res.json({
       message: 'Login successful',
-        user: {
-          id: freshUser._id,
-          firstName: freshUser.firstName,
-          lastName: freshUser.lastName,
-          email: freshUser.email,
-          role: freshUser.role,
-          isEmailVerified: freshUser.isEmailVerified,
-          lastLogin: freshUser.lastLogin,
-          phone: freshUser.phone,
-          dateOfBirth: freshUser.dateOfBirth,
-          address: freshUser.address,
-          createdAt: freshUser.createdAt,
-          updatedAt: freshUser.updatedAt
-        },
+      user: {
+        id: freshUser._id,
+        firstName: freshUser.firstName,
+        lastName: freshUser.lastName,
+        email: freshUser.email,
+        role: freshUser.role,
+        isEmailVerified: freshUser.isEmailVerified,
+        lastLogin: freshUser.lastLogin,
+        phone: freshUser.phone,
+        dateOfBirth: freshUser.dateOfBirth,
+        address: freshUser.address,
+        createdAt: freshUser.createdAt,
+        updatedAt: freshUser.updatedAt
+      },
       token
     });
 
@@ -238,13 +240,31 @@ const forgotPassword = async (req, res) => {
     // Log password reset request
     auditLog.passwordReset(user._id, user.email, req.ip);
 
-    // In production, send email with reset link
-    // For now, we'll return the token (remove in production)
-    logger.info(`Password reset requested for: ${email}, token: ${resetToken}`);
+    // Send email with reset link
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Password Reset Request',
+        html: `
+          <p>Hello ${user.firstName},</p>
+          <p>We received a request to reset your password. Click the link below to set a new password. This link is valid for 15 minutes.</p>
+          <p><a href="${resetLink}">Reset your password</a></p>
+          <p>If you didn’t request this, you can ignore this email.</p>
+          <p>— InsureMithra</p>
+        `,
+        text: `Reset your password: ${resetLink}`
+      });
+    } catch (mailErr) {
+      logger.error('Error sending reset email:', mailErr);
+      // Do not reveal email send issues to client
+    }
+
+    logger.info(`Password reset requested for: ${email}`);
 
     res.json({
-      message: 'If an account with that email exists, a password reset link has been sent.',
-      resetToken // Remove this in production
+      message: 'If an account with that email exists, a password reset link has been sent.'
     });
 
   } catch (error) {
@@ -361,8 +381,6 @@ const getMe = async (req, res) => {
   }
 };
 
-// For Story A, we won't send emails, but keep helper available if env exists
-const { sendEmail } = require('../config/mailer');
 module.exports = {
   register,
   login,
