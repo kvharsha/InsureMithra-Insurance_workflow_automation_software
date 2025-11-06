@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+// Story B: Profile not available yet
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import './App.css';
@@ -111,6 +112,8 @@ function App() {
                   <Profile />
                 </ProtectedRoute>
               } />
+              {/* Story B: Profile not available yet */}
+              <Route path="/profile" element={<Navigate to="/dashboard" replace />} />
               
               {/* Default redirect */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
