@@ -6,6 +6,12 @@ import {
   Typography,
   Card,
   CardContent,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Avatar,
+  Menu,
+  MenuItem,
   Chip,
 } from '@mui/material';
 import {
@@ -22,6 +28,25 @@ import { useAuth } from '../contexts/AuthContext';
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
+    handleMenuClose();
+  };
 
   const stats = [
     {
@@ -84,6 +109,45 @@ const Dashboard: React.FC = () => {
   return (
     <Box className="dashboard-container">
       <Container maxWidth="lg" className="dashboard-content" sx={{ mt: 3 }}>
+      <AppBar position="static" elevation={0} sx={{ bgcolor: 'white', color: 'text.primary' }}>
+        <Toolbar>
+          <DashboardIcon sx={{ mr: 2, color: 'primary.main' }} />
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'text.primary' }}>
+            InsureMithra
+          </Typography>
+          
+          <IconButton color="inherit" onClick={handleMenuOpen}>
+            <Avatar sx={{ bgcolor: 'primary.main' }}>
+              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+            </Avatar>
+          </IconButton>
+          
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <MenuItem onClick={handleProfile}>
+              <Person sx={{ mr: 1 }} />
+              Profile
+            </MenuItem>
+            <MenuItem onClick={handleLogout}>
+              <Logout sx={{ mr: 1 }} />
+              Logout
+            </MenuItem>
+          </Menu>
+        </Toolbar>
+      </AppBar>
+
+      <Container maxWidth="lg" className="dashboard-content">
         {/* Welcome Section */}
         <Card className="welcome-card">
           <CardContent>
@@ -102,6 +166,9 @@ const Dashboard: React.FC = () => {
                     />
                   )}
                 </Box>
+                <Typography variant="h4" gutterBottom>
+                  Welcome back, {user?.firstName}! 👋
+                </Typography>
                 <Typography variant="body1" sx={{ opacity: 0.9 }}>
                   Here's what's happening with your insurance today.
                 </Typography>

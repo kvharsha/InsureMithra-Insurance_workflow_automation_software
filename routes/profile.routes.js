@@ -11,6 +11,7 @@ const {
   updateUserRole,
   toggleUserStatus,
   getSystemStats
+  getActivityLog
 } = require('../controllers/profile.controller');
 const { authenticate, requireAdmin, validateTokenFormat } = require('../middleware/auth');
 

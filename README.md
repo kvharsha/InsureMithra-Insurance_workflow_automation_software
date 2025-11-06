@@ -261,6 +261,36 @@ RATE_LIMIT_MAX_ATTEMPTS=5
 - `GET /api/auth/verify-email/:token` - Verify email address
 - `GET /api/auth/me` - Get current user info
 
+
+### Authentication
+- **JWT-based authentication** with configurable expiration
+- **Password hashing** using bcrypt with salt rounds
+- **Account lockout** after 5 failed login attempts (15-minute lockout)
+- **Rate limiting** on authentication endpoints
+
+### Password Security
+- Minimum 8 characters required
+- Must contain: uppercase, lowercase, number, special character
+- Secure password reset with time-limited tokens (15 minutes)
+- Email verification with 24-hour token validity
+
+### Audit Logging
+- All authentication events logged
+- Profile changes tracked
+- Failed login attempts recorded
+- Security events monitored with IP and user agent tracking
+
+## 📚 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
+- `GET /api/auth/verify-email/:token` - Verify email address
+- `GET /api/auth/me` - Get current user info
+
 ### Profile Management
 - `GET /api/profile` - Get user profile
 - `PUT /api/profile` - Update user profile
@@ -298,6 +328,8 @@ requireUser          // Requires user or admin role
 - Deactivate users → Admin only (cannot deactivate self)
 - View system stats → Admin only
 - Activity logs → Admin can view any user's logs
+### System
+- `GET /api/health` - Health check
 
 ## 🧪 Testing
 
@@ -426,6 +458,52 @@ mongod
 
 **Backend Development:**
 ```bash
+```bash
+# Start MongoDB
+mongod
+
+# Create database (automatically created on first connection)
+# Database name: insuremithra
+```
+
+### Logging
+- **Error logs**: `logs/error.log`
+- **Combined logs**: `logs/combined.log`
+- **Audit logs**: `logs/audit.log`
+
+### Production Considerations
+- Use environment variables for all secrets
+- Set up proper MongoDB authentication
+- Configure email service for password reset
+- Set up log rotation and monitoring
+- Use HTTPS in production
+- Implement proper CORS configuration
+
+## 🚀 Complete Command Reference
+
+### Initial Setup (First Time Only)
+
+```bash
+# 1. Install backend dependencies
+npm install
+
+# 2. Install frontend dependencies
+cd frontend
+npm install
+cd ..
+
+# 3. Setup environment variables
+cp env.example .env
+# Edit .env with your MongoDB URI and JWT secret
+
+# 4. Start MongoDB (in a separate terminal)
+mongod
+```
+
+### Development Commands
+
+**Backend Development:**
+```bash
 # Start backend server with nodemon (auto-restart)
 npm run dev
 
@@ -436,6 +514,25 @@ npm start
 node simple-server.js
 
 # Run backend tests
+npm test
+```
+
+**Frontend Development:**
+```bash
+# Start React development server
+cd frontend
+npm start
+
+# Build frontend for production
+npm run build
+
+# Test frontend build
+npm run build
+
+# Run frontend tests
+npm test
+```
+
 npm test
 ```
 
