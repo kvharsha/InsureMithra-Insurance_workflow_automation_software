@@ -21,11 +21,11 @@ app.use(cors({
 
 // Rate limiting for authentication endpoints
 const authLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
+  windowMs: 30 * 1000, // 30 seconds
   max: 5, // limit each IP to 5 requests per windowMs
   message: {
     error: 'Too many authentication attempts, please try again later.',
-    retryAfter: '1 minutes'
+    retryAfter: '30 seconds'
   }
 });
 
