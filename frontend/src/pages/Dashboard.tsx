@@ -166,9 +166,7 @@ const Dashboard: React.FC = () => {
                     />
                   )}
                 </Box>
-                <Typography variant="h4" gutterBottom>
-                  Welcome back, {user?.firstName}! 👋
-                </Typography>
+                
                 <Typography variant="body1" sx={{ opacity: 0.9 }}>
                   Here's what's happening with your insurance today.
                 </Typography>
@@ -295,6 +293,7 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
       </Container>
+    </Container>
     </Box>
   );
 };
