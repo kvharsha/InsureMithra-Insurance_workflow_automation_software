@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { searchPolicies, comparePolicies } = require('../controllers/policy.controller');
+const { searchPolicies } = require('../controllers/policy.controller');
 const { authenticate, validateTokenFormat } = require('../middleware/auth');
 
 // Allow public access to search (browsing policies) while keeping other routes protected
