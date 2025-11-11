@@ -66,12 +66,14 @@ const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
+const claimRoutes = require('./routes/claim.routes');
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/policies', policyRoutes);
 app.use('/api/purchase', purchaseRoutes);
+app.use('/api/claims', claimRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

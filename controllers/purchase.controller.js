@@ -155,4 +155,28 @@ async function simulateProcessing(purchaseId) {
   }
 }
 
-module.exports = { initiatePurchase, completePurchase, getPurchase, downloadPDF };
+/**
+ * GET /api/purchase/my
+ * Get all purchases for the authenticated user
+ */
+const getUserPurchases = async (req, res) => {
+  try {
+    const userId = req.user && req.user._id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const purchases = await Purchase.find({ userId })
+      .populate('policyId', 'name type insurer premium model coverage')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ 
+      success: true, 
+      count: purchases.length,
+      data: purchases 
+    });
+  } catch (err) {
+    logger.error('Error fetching user purchases:', err);
+    return res.status(500).json({ success: false, message: 'Error fetching purchases', error: err.message });
+  }
+};
+
+module.exports = { initiatePurchase, completePurchase, getPurchase, downloadPDF, getUserPurchases };
