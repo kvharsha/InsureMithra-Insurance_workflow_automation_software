@@ -143,6 +143,10 @@ export const policyAPI = {
     const response = await api.post('/policies/compare', { policyIds });
     return response.data;
   },
+  getPolicyById: async (policyId: string) => {
+    const response = await api.get(`/policies/${policyId}`);
+    return response.data;
+  },
 };
 
 export const purchaseAPI = {

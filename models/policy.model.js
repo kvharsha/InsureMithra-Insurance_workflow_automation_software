@@ -12,6 +12,7 @@ const PolicySchema = new mongoose.Schema({
   coverage: { type: String, required: true, trim: true },
   tenure: { type: String, default: '1 year', trim: true },
   description: { type: String, required: false, trim: true },
+  exclusions: { type: [String], default: [] },
   benefits: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now }
 });

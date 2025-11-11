@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Container, TextField, Button, Card, CardContent, Typography, MenuItem, Select } from '@mui/material';
 import { policyAPI } from '../services/api';
 
 const Policies: React.FC = () => {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState({ type: '', model: '', insurer: '', minPrice: '', maxPrice: '' });
   const [policies, setPolicies] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,7 +69,11 @@ const Policies: React.FC = () => {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
           {policies.length ? policies.map((p) => (
-            <Card key={p._id}>
+            <Card 
+              key={p._id}
+              sx={{ cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
+              onClick={() => navigate(`/policies/${p._id}/details`)}
+            >
               <CardContent>
                 <Typography variant="h6">{p.name}</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} — {p.model}</Typography>

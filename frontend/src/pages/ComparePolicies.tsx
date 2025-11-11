@@ -101,6 +101,30 @@ const ComparePolicies: React.FC = () => {
                   <TableCell>Description</TableCell>
                   {policies.map((p) => <TableCell key={p._id}>{p.description || '-'}</TableCell>)}
                 </TableRow>
+                <TableRow>
+                  <TableCell><strong>Actions</strong></TableCell>
+                  {policies.map((p) => (
+                    <TableCell key={p._id}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Button 
+                          variant="outlined" 
+                          size="small"
+                          onClick={() => navigate(`/policies/${p._id}/details`)}
+                        >
+                          View Details
+                        </Button>
+                        <Button 
+                          variant="contained" 
+                          color="secondary" 
+                          size="small"
+                          onClick={() => navigate(`/purchase/${p._id}`)}
+                        >
+                          Buy Now
+                        </Button>
+                      </Box>
+                    </TableCell>
+                  ))}
+                </TableRow>
               </TableBody>
             </Table>
           </Paper>
