@@ -130,16 +130,76 @@ const PolicySearch: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Compare Now Button - Shows when policies are selected */}
+        {selectedIds.length > 0 && (
+          <Box sx={{ mb: 3, p: 2, bgcolor: '#f5f5f5', borderRadius: 2, display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box>
+              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                {selectedIds.length} {selectedIds.length === 1 ? 'policy' : 'policies'} selected
+              </Typography>
+              {selectedIds.length > 0 && selectedIds.length < 2 && (
+                <Typography variant="body2" color="text.secondary">Select at least 2 policies to compare</Typography>
+              )}
+              {selectedIds.length > 3 && (
+                <Typography variant="body2" color="error">Maximum 3 policies can be compared</Typography>
+              )}
+            </Box>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              size="large"
+              disabled={selectedIds.length < 2 || selectedIds.length > 3} 
+              onClick={handleCompareNow}
+            >
+              Compare Now ({selectedIds.length})
+            </Button>
+          </Box>
+        )}
+
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           {results.map((p, idx) => (
             <div key={p._id || idx} style={{ flex: '1 1 300px', minWidth: 280, maxWidth: 420 }}>
-              <Card>
+              <Card sx={{ 
+                border: selectedIds.includes(p._id) ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                '&:hover': { boxShadow: 4 }
+              }}>
                 <CardContent>
+                  {/* Checkbox for comparison */}
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={selectedIds.includes(p._id)}
+                        onChange={() => toggleSelect(p._id)}
+                        disabled={!selectedIds.includes(p._id) && selectedIds.length >= 3}
+                      />
+                    }
+                    label="Select to compare"
+                    sx={{ mb: 1 }}
+                  />
+                  
                   <Typography variant="h6" sx={{ mb: 1 }}>{p.name}</Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} • {p.model ? `${p.model} • ` : ''}{p.insurer}</Typography>
                   <Typography variant="body1" sx={{ fontWeight: 600, color: '#1976d2' }}>Premium: ₹{p.premium}</Typography>
                   {p.sumAssured ? <Typography variant="body2">Sum Assured: ₹{p.sumAssured}</Typography> : null}
                   {p.description ? <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{p.description}</Typography> : null}
+                  
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                    <Button 
+                      size="small" 
+                      variant="outlined" 
+                      onClick={() => navigate(`/policies/${p._id}/details`)}
+                    >
+                      View Details
+                    </Button>
+                    <Button 
+                      size="small" 
+                      variant="contained" 
+                      color="secondary"
+                      onClick={() => navigate(`/purchase/${p._id}`)}
+                    >
+                      Buy Now
+                    </Button>
+                  </Box>
                 </CardContent>
               </Card>
             </div>
@@ -147,12 +207,6 @@ const PolicySearch: React.FC = () => {
           {!loading && results.length === 0 && (
             <Typography color="text.secondary">No results. Adjust filters and try again.</Typography>
           )}
-        </div>
-        <div style={{ marginTop: 18 }}>
-          <Button variant="contained" color="primary" disabled={selectedIds.length < 2} onClick={handleCompareNow}>
-            Compare Now ({selectedIds.length})
-          </Button>
-          {selectedIds.length > 3 && <Typography color="error">You can only compare up to 3 policies.</Typography>}
         </div>
       </Container>
     </Box>
