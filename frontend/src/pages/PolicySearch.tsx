@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, Container, Card, CardContent, TextField, Button, Typography, InputAdornment } from '@mui/material';
+import { Box, Container, Card, CardContent, TextField, Button, Typography, InputAdornment, Checkbox, FormControlLabel } from '@mui/material';
 import { policyAPI } from '../services/api';
 import SearchIcon from '@mui/icons-material/Search';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
@@ -9,6 +9,7 @@ const PolicySearch: React.FC = () => {
   const [filters, setFilters] = useState({ type: '', insurer: '', model: '', minPremium: '', maxPremium: '' });
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -76,6 +77,20 @@ const PolicySearch: React.FC = () => {
     }
   }, [location.search]);
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) return prev.filter((p) => p !== id);
+      if (prev.length >= 3) return prev; // ignore beyond 3
+      return [...prev, id];
+    });
+  };
+
+  const handleCompareNow = () => {
+    if (selectedIds.length < 2) return;
+    const qs = new URLSearchParams({ ids: selectedIds.join(',') }).toString();
+    navigate(`/compare?${qs}`);
+  };
+
   return (
     <Box className="dashboard-container">
       <Container maxWidth="lg">
@@ -132,6 +147,12 @@ const PolicySearch: React.FC = () => {
           {!loading && results.length === 0 && (
             <Typography color="text.secondary">No results. Adjust filters and try again.</Typography>
           )}
+        </div>
+        <div style={{ marginTop: 18 }}>
+          <Button variant="contained" color="primary" disabled={selectedIds.length < 2} onClick={handleCompareNow}>
+            Compare Now ({selectedIds.length})
+          </Button>
+          {selectedIds.length > 3 && <Typography color="error">You can only compare up to 3 policies.</Typography>}
         </div>
       </Container>
     </Box>

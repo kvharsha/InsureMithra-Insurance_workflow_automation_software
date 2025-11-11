@@ -13,6 +13,7 @@ import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import PolicySearch from './pages/PolicySearch';
 import Policies from './pages/Policies';
+import ComparePolicies from './pages/ComparePolicies';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -118,6 +119,11 @@ function App() {
               <Route path="/policy-search" element={
                 <ProtectedRoute>
                   <PolicySearch />
+                </ProtectedRoute>
+              } />
+              <Route path="/compare" element={
+                <ProtectedRoute>
+                  <ComparePolicies />
                 </ProtectedRoute>
               } />
               {/* New public policies browser page (supports advanced filters) */}

@@ -12,6 +12,9 @@ router.get('/search', searchPolicies);
 router.use(validateTokenFormat);
 router.use(authenticate);
 
+// Compare endpoint (authenticated): POST /api/policies/compare
+router.post('/compare', comparePolicies);
+
 module.exports = router;
 
 
