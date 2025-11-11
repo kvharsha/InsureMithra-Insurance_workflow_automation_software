@@ -79,6 +79,9 @@ const Policies: React.FC = () => {
                     {p.benefits.map((b: string, i: number) => <li key={i}>{b}</li>)}
                   </ul>
                 ) : null}
+                <div style={{ marginTop: 12 }}>
+                  <Button variant="contained" color="secondary" onClick={() => window.location.href = `/purchase/${p._id}`}>Buy Now</Button>
+                </div>
               </CardContent>
             </Card>
           )) : (

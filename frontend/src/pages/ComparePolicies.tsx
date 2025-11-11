@@ -109,6 +109,11 @@ const ComparePolicies: React.FC = () => {
         <div style={{ marginTop: 16 }}>
           <Button variant="outlined" sx={{ mr: 2 }} onClick={() => navigate(-1)}>Back</Button>
           <Button variant="contained" onClick={() => navigate('/policy-search')}>New Search</Button>
+          {policies.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <Button variant="contained" color="secondary" onClick={() => navigate(`/purchase/${policies[0]._id}`)}>Buy First Policy</Button>
+            </div>
+          )}
         </div>
       </Container>
     </Box>
