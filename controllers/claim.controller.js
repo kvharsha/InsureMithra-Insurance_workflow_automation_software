@@ -1,10 +1,12 @@
 const Claim = require('../models/claim.model');
 const Purchase = require('../models/purchase.model');
+const User = require('../models/user.model');
 const generateClaimId = require('../utils/claimIdGenerator');
 const storageService = require('../services/storage.service');
 const { logger } = require('../config/logger');
 const fs = require('fs');
 const path = require('path');
+const { sendClaimStatusEmail } = require('../utils/claimStatusNotifier');
 
 // Create logs directory if it doesn't exist
 const logsDir = path.join(process.cwd(), 'logs');
@@ -28,6 +30,18 @@ function logClaimSubmission(userId, claimId, policyId, ipAddress) {
   }) + '\n';
 
   fs.appendFileSync(claimsLogPath, logEntry, 'utf8');
+}
+
+/**
+ * Log status changes to claims.log
+ */
+function logStatusChange(claimId, newStatus, updatedBy) {
+  const entry = `[${new Date().toISOString()}] claimId=${claimId}, status=${newStatus}, updatedBy=${updatedBy}\n`;
+  try {
+    fs.appendFileSync(claimsLogPath, entry, 'utf8');
+  } catch (err) {
+    logger.error('Failed to write status change to claims.log', err);
+  }
 }
 
 /**
@@ -141,10 +155,22 @@ const getUserClaims = async (req, res) => {
       .populate('policyId', 'name type insurer premium')
       .sort({ submittedAt: -1 });
 
+    // Return minimal fields for list view
+    const mapped = claims.map(c => ({
+      _id: c._id,
+      claimId: c.claimId,
+      policyId: c.policyId,
+      status: c.status,
+      submittedAt: c.submittedAt,
+      updatedAt: c.updatedAt,
+      documents: c.documents || [],
+      notes: c.notes || ''
+    }));
+
     return res.status(200).json({
       success: true,
-      count: claims.length,
-      data: claims
+      count: mapped.length,
+      data: mapped
     });
 
   } catch (error) {
@@ -164,13 +190,14 @@ const getUserClaims = async (req, res) => {
 const getClaimById = async (req, res) => {
   try {
     const userId = req.user?._id;
-    const { claimId } = req.params;
+    const { claimId, id } = req.params;
+    const lookupId = claimId || id;
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const claim = await Claim.findOne({ claimId })
+    const claim = await Claim.findOne({ claimId: lookupId })
       .populate('policyId', 'name type insurer premium coverage')
       .populate('userId', 'firstName lastName email');
 
@@ -198,8 +225,148 @@ const getClaimById = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/claims/:claimId/documents/:filename
+ * Returns a document file for a claim if the requester is the owner or admin
+ */
+const getClaimByIdDocument = async (req, res) => {
+  try {
+    const userId = req.user?._id;
+    const { claimId, filename } = req.params;
+
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const claim = await Claim.findOne({ claimId }).populate('userId', 'email');
+    if (!claim) return res.status(404).json({ success: false, message: 'Claim not found' });
+
+    // Ownership or admin check
+    if (claim.userId._id.toString() !== userId.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const matched = (claim.documents || []).find(d => d.filename === filename);
+    if (!matched) return res.status(404).json({ success: false, message: 'Document not found' });
+
+    // Use absolute path saved in metadata
+    const filePath = matched.path;
+    if (!filePath || !fs.existsSync(filePath)) {
+      return res.status(404).json({ success: false, message: 'File missing on server' });
+    }
+
+    return res.sendFile(path.resolve(filePath));
+  } catch (error) {
+    logger.error('Error fetching claim document:', error);
+    return res.status(500).json({ success: false, message: 'Error fetching document', error: error.message });
+  }
+};
+
+/**
+ * PUT /api/claims/:id/status
+ * Admin endpoint to update claim status
+ */
+const updateClaimStatus = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const { id } = req.params;
+    const { status, note } = req.body;
+
+    const allowed = ['Submitted', 'Under Review', 'Approved', 'Rejected', 'Closed'];
+    if (!status || !allowed.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const claim = await Claim.findOne({ claimId: id });
+    if (!claim) return res.status(404).json({ success: false, message: 'Claim not found' });
+
+    const previous = claim.status;
+    claim.status = status;
+    claim.history = claim.history || [];
+    claim.history.push({ status, updatedAt: new Date(), note: note || '', updatedBy: user._id });
+    claim.lastUpdatedBy = user._id;
+    claim.updatedAt = Date.now();
+
+    await claim.save();
+
+    // Log to claims.log
+    logStatusChange(claim.claimId, status, user.email || user._id);
+
+    // Notify user by email (best-effort)
+    try {
+      const claimOwner = await User.findById(claim.userId);
+      if (claimOwner && claimOwner.email) {
+        await sendClaimStatusEmail(claimOwner.email, claim.claimId, status);
+      }
+    } catch (emailErr) {
+      logger.error('Error sending claim status email:', emailErr);
+    }
+
+    return res.status(200).json({ success: true, message: 'Status updated', data: { claimId: claim.claimId, status } });
+
+  } catch (error) {
+    logger.error('Error updating claim status:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update status', error: error.message });
+  }
+};
+
+/**
+ * GET /api/claims/admin
+ * Admin-only: list all claims with optional pagination and filters
+ */
+const getAllClaimsAdmin = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (req.query.status) filter.status = req.query.status;
+    if (req.query.userEmail) {
+      // simple search by user email - will populate and filter in-memory fallback
+    }
+
+    const [claims, total] = await Promise.all([
+      Claim.find(filter)
+        .populate('policyId', 'name type insurer')
+        .populate('userId', 'firstName lastName email')
+        .sort({ submittedAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Claim.countDocuments(filter)
+    ]);
+
+    const mapped = claims.map(c => ({
+      _id: c._id,
+      claimId: c.claimId,
+      policy: c.policyId,
+      user: c.userId,
+      status: c.status,
+      submittedAt: c.submittedAt,
+      updatedAt: c.updatedAt,
+      documentCount: (c.documents || []).length,
+      lastUpdatedBy: c.lastUpdatedBy
+    }));
+
+    return res.status(200).json({ success: true, count: mapped.length, total, page, limit, data: mapped });
+  } catch (error) {
+    logger.error('Error listing claims for admin:', error);
+    return res.status(500).json({ success: false, message: 'Failed to list claims', error: error.message });
+  }
+};
+
 module.exports = {
   submitClaim,
   getUserClaims,
-  getClaimById
+  getClaimById,
+  getClaimByIdDocument,
+  updateClaimStatus,
+  getAllClaimsAdmin
 };
