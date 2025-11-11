@@ -135,7 +135,10 @@ function App() {
               } />
               {/* New public policies browser page (supports advanced filters) */}
               <Route path="/policies" element={<Policies />} />
+<<<<<<< HEAD
               <Route path="/policies/:id/details" element={<PolicyDetails />} />
+=======
+>>>>>>> develop
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
@@ -156,16 +159,29 @@ export default App;
 
 const AppHeader: React.FC = () => {
   const { user, logout } = useAuth();
+<<<<<<< HEAD
   const navigate = useNavigate();
+=======
+  const navigate = (path?: string) => {
+    // simple navigate using window.location to avoid importing router here
+    if (path) window.location.href = path;
+  };
+>>>>>>> develop
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
   return (
+<<<<<<< HEAD
     <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #eee', position: 'sticky', top: 0, zIndex: 1000 }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <img src="/logo192.png" alt="InsureMithra" style={{ height: 40, marginRight: 16 }} />
+=======
+    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', background: '#fff', borderBottom: '1px solid #eee', position: 'sticky', top: 0, zIndex: 1000 }}>
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <img src="/logo192.png" alt="InsureMithra" style={{ height: 36, marginRight: 12 }} />
+>>>>>>> develop
         <h3 style={{ margin: 0, color: '#1976d2' }}>InsureMithra</h3>
       </div>
 
@@ -202,4 +218,8 @@ const AppHeader: React.FC = () => {
       </div>
     </header>
   );
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> develop

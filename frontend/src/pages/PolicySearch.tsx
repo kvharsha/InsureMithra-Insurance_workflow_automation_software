@@ -135,21 +135,11 @@ const PolicySearch: React.FC = () => {
             <div key={p._id || idx} style={{ flex: '1 1 300px', minWidth: 280, maxWidth: 420 }}>
               <Card>
                 <CardContent>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ flex: 1 }}>
-                      <Typography variant="h6" sx={{ mb: 1 }}>{p.name}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} • {p.model ? `${p.model} • ` : ''}{p.insurer}</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#1976d2' }}>Premium: ₹{p.premium}</Typography>
-                      {p.sumAssured ? <Typography variant="body2">Sum Assured: ₹{p.sumAssured}</Typography> : null}
-                      {p.description ? <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{p.description}</Typography> : null}
-                    </div>
-                    <div style={{ marginLeft: 12 }}>
-                      <FormControlLabel
-                        control={<Checkbox checked={selectedIds.includes(p._id)} onChange={() => toggleSelect(p._id)} />}
-                        label="Compare"
-                      />
-                    </div>
-                  </div>
+                  <Typography variant="h6" sx={{ mb: 1 }}>{p.name}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} • {p.model ? `${p.model} • ` : ''}{p.insurer}</Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#1976d2' }}>Premium: ₹{p.premium}</Typography>
+                  {p.sumAssured ? <Typography variant="body2">Sum Assured: ₹{p.sumAssured}</Typography> : null}
+                  {p.description ? <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>{p.description}</Typography> : null}
                 </CardContent>
               </Card>
             </div>

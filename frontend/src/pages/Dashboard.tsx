@@ -6,6 +6,12 @@ import {
   Typography,
   Card,
   CardContent,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Avatar,
+  Menu,
+  MenuItem,
   Chip,
 } from '@mui/material';
 import {
@@ -22,6 +28,25 @@ import { useAuth } from '../contexts/AuthContext';
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
+    handleMenuClose();
+  };
 
   const stats = [
     {
@@ -84,8 +109,48 @@ const Dashboard: React.FC = () => {
   return (
     <Box className="dashboard-container">
       <Container maxWidth="lg" className="dashboard-content" sx={{ mt: 3 }}>
+        {/* Top App Bar */}
+        <AppBar position="static" elevation={0} sx={{ bgcolor: 'white', color: 'text.primary' }}>
+          <Toolbar>
+            <DashboardIcon sx={{ mr: 2, color: 'primary.main' }} />
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'text.primary' }}>
+              InsureMithra
+            </Typography>
+
+            <IconButton color="inherit" onClick={handleMenuOpen}>
+              <Avatar sx={{ bgcolor: 'primary.main' }}>
+                {user?.firstName?.charAt(0)}
+                {user?.lastName?.charAt(0)}
+              </Avatar>
+            </IconButton>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <MenuItem onClick={handleProfile}>
+                <Person sx={{ mr: 1 }} />
+                Profile
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <Logout sx={{ mr: 1 }} />
+                Logout
+              </MenuItem>
+            </Menu>
+          </Toolbar>
+        </AppBar>
+
         {/* Welcome Section */}
-        <Card className="welcome-card">
+        <Card className="welcome-card" sx={{ mt: 3 }}>
           <CardContent>
             <Box display="flex" alignItems="center" justifyContent="space-between">
               <Box>
@@ -94,14 +159,10 @@ const Dashboard: React.FC = () => {
                     Welcome back, {user?.firstName}! 👋
                   </Typography>
                   {user?.role === 'admin' && (
-                    <Chip
-                      label="Admin"
-                      color="secondary"
-                      size="small"
-                      icon={<Shield />}
-                    />
+                    <Chip label="Admin" color="secondary" size="small" icon={<Shield />} />
                   )}
                 </Box>
+
                 <Typography variant="body1" sx={{ opacity: 0.9 }}>
                   Here's what's happening with your insurance today.
                 </Typography>
@@ -131,12 +192,8 @@ const Dashboard: React.FC = () => {
                   >
                     {stat.icon}
                   </Box>
-                  <Typography className="stat-value">
-                    {stat.value}
-                  </Typography>
-                  <Typography className="stat-label">
-                    {stat.title}
-                  </Typography>
+                  <Typography className="stat-value">{stat.value}</Typography>
+                  <Typography className="stat-label">{stat.title}</Typography>
                 </CardContent>
               </Card>
             </div>
@@ -147,13 +204,13 @@ const Dashboard: React.FC = () => {
         <Typography variant="h5" gutterBottom sx={{ mt: 4, mb: 3 }}>
           Quick Actions
         </Typography>
-        
+
         <div className="quick-actions-grid">
           {quickActions.map((action, index) => (
             <div key={index} className="action-item">
-              <Card 
+              <Card
                 className="stat-card"
-                sx={{ 
+                sx={{
                   cursor: 'pointer',
                   '&:hover': {
                     transform: 'translateY(-4px)',
@@ -194,9 +251,7 @@ const Dashboard: React.FC = () => {
               <Box display="flex" alignItems="center" py={2} borderBottom="1px solid #eee">
                 <Shield sx={{ mr: 2, color: 'success.main' }} />
                 <Box>
-                  <Typography variant="body1">
-                    Policy renewed successfully
-                  </Typography>
+                  <Typography variant="body1">Policy renewed successfully</Typography>
                   <Typography variant="body2" color="text.secondary">
                     2 days ago
                   </Typography>
@@ -205,9 +260,7 @@ const Dashboard: React.FC = () => {
               <Box display="flex" alignItems="center" py={2} borderBottom="1px solid #eee">
                 <Description sx={{ mr: 2, color: 'warning.main' }} />
                 <Box>
-                  <Typography variant="body1">
-                    New claim submitted
-                  </Typography>
+                  <Typography variant="body1">New claim submitted</Typography>
                   <Typography variant="body2" color="text.secondary">
                     1 week ago
                   </Typography>
@@ -216,9 +269,7 @@ const Dashboard: React.FC = () => {
               <Box display="flex" alignItems="center" py={2}>
                 <Assessment sx={{ mr: 2, color: 'info.main' }} />
                 <Box>
-                  <Typography variant="body1">
-                    Profile updated
-                  </Typography>
+                  <Typography variant="body1">Profile updated</Typography>
                   <Typography variant="body2" color="text.secondary">
                     2 weeks ago
                   </Typography>

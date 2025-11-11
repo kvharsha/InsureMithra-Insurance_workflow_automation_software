@@ -1,15 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const { searchPolicies, comparePolicies, getPolicyById } = require('../controllers/policy.controller');
+const { searchPolicies } = require('../controllers/policy.controller');
 const { authenticate, validateTokenFormat } = require('../middleware/auth');
 
-// Public routes for browsing policies
+// Allow public access to search (browsing policies) while keeping other routes protected
 // Search endpoint (public): GET /api/policies/search
 router.get('/search', searchPolicies);
-
-// Policy details endpoint (public): GET /api/policies/:id
-router.get('/:id', getPolicyById);
 
 // Protect all other policy routes
 router.use(validateTokenFormat);

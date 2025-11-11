@@ -85,22 +85,8 @@ const Policies: React.FC = () => {
                     {p.benefits.map((b: string, i: number) => <li key={i}>{b}</li>)}
                   </ul>
                 ) : null}
-                <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                  <Button 
-                    variant="outlined" 
-                    size="small"
-                    onClick={(e) => { e.stopPropagation(); navigate(`/policies/${p._id}/details`); }}
-                  >
-                    View Details
-                  </Button>
-                  <Button 
-                    variant="contained" 
-                    color="secondary" 
-                    size="small"
-                    onClick={(e) => { e.stopPropagation(); navigate(`/purchase/${p._id}`); }}
-                  >
-                    Buy Now
-                  </Button>
+                <div style={{ marginTop: 12 }}>
+                  <Button variant="contained" color="secondary" onClick={() => window.location.href = `/purchase/${p._id}`}>Buy Now</Button>
                 </div>
               </CardContent>
             </Card>
