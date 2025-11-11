@@ -134,4 +134,39 @@ export const profileAPI = {
   },
 };
 
+export const policyAPI = {
+  searchPolicies: async (params: { type?: string; insurer?: string; minPremium?: number | string; maxPremium?: number | string }) => {
+    const response = await api.get('/policies/search', { params });
+    return response.data;
+  },
+  comparePolicies: async (policyIds: string[]) => {
+    const response = await api.post('/policies/compare', { policyIds });
+    return response.data;
+  },
+  getPolicyById: async (policyId: string) => {
+    const response = await api.get(`/policies/${policyId}`);
+    return response.data;
+  },
+};
+
+export const purchaseAPI = {
+  initiate: async (policyId: string) => {
+    const response = await api.post('/purchase/initiate', { policyId });
+    return response.data;
+  },
+  complete: async (purchaseId: string) => {
+    const response = await api.post('/purchase/complete', { purchaseId });
+    return response.data;
+  },
+  get: async (purchaseId: string) => {
+    const response = await api.get(`/purchase/${purchaseId}`);
+    return response.data;
+  },
+  download: async (purchaseId: string) => {
+    // returns blob
+    const response = await api.get(`/purchase/${purchaseId}/download`, { responseType: 'blob' });
+    return response.data;
+  }
+};
+
 export default api;
