@@ -162,9 +162,30 @@ export const purchaseAPI = {
     const response = await api.get(`/purchase/${purchaseId}`);
     return response.data;
   },
+  getUserPurchases: async () => {
+    const response = await api.get('/purchase/my');
+    return response.data;
+  },
   download: async (purchaseId: string) => {
     // returns blob
     const response = await api.get(`/purchase/${purchaseId}/download`, { responseType: 'blob' });
+    return response.data;
+  }
+};
+
+export const claimAPI = {
+  submit: async (formData: FormData) => {
+    const response = await api.post('/claims', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+  getUserClaims: async () => {
+    const response = await api.get('/claims');
+    return response.data;
+  },
+  getClaimById: async (claimId: string) => {
+    const response = await api.get(`/claims/${claimId}`);
     return response.data;
   }
 };

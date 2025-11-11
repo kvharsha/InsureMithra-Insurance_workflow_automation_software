@@ -16,6 +16,9 @@ import Policies from './pages/Policies';
 import ComparePolicies from './pages/ComparePolicies';
 import PolicyPurchase from './pages/PolicyPurchase';
 import PolicyDetails from './pages/PolicyDetails';
+import MyPurchases from './pages/MyPurchases';
+import ClaimSubmit from './pages/ClaimSubmit';
+import MyClaims from './pages/MyClaims';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -133,6 +136,21 @@ function App() {
                   <PolicyPurchase />
                 </ProtectedRoute>
               } />
+              <Route path="/my-purchases" element={
+                <ProtectedRoute>
+                  <MyPurchases />
+                </ProtectedRoute>
+              } />
+              <Route path="/claims/submit" element={
+                <ProtectedRoute>
+                  <ClaimSubmit />
+                </ProtectedRoute>
+              } />
+              <Route path="/claims" element={
+                <ProtectedRoute>
+                  <MyClaims />
+                </ProtectedRoute>
+              } />
               {/* New public policies browser page (supports advanced filters) */}
               <Route path="/policies" element={<Policies />} />
               <Route path="/policies/:id/details" element={<PolicyDetails />} />
@@ -171,6 +189,15 @@ const AppHeader: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {user ? (
           <>
+            <button onClick={() => navigate('/policies')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              Browse Policies
+            </button>
+            <button onClick={() => navigate('/my-purchases')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              My Purchases
+            </button>
+            <button onClick={() => navigate('/claims')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              My Claims
+            </button>
             <button onClick={() => navigate('/policy-search')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
               Policy Search
             </button>
