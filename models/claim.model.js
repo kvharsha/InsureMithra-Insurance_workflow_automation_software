@@ -53,6 +53,16 @@ const ClaimSchema = new mongoose.Schema({
     type: String,
     maxlength: 5000
   },
+  lastUpdatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  history: [{
+    status: { type: String },
+    updatedAt: { type: Date, default: Date.now },
+    note: { type: String },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  }],
   // Audit metadata
   audit: {
     ipAddress: String,

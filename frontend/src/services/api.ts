@@ -181,11 +181,22 @@ export const claimAPI = {
     return response.data;
   },
   getUserClaims: async () => {
-    const response = await api.get('/claims');
+    // use /claims/my to fetch claims belonging to the authenticated user
+    const response = await api.get('/claims/my');
     return response.data;
   },
   getClaimById: async (claimId: string) => {
     const response = await api.get(`/claims/${claimId}`);
+    return response.data;
+  }
+  ,
+  // Admin APIs for claims
+  adminGetClaims: async (params?: { page?: number; limit?: number; status?: string; userEmail?: string }) => {
+    const response = await api.get('/claims/admin', { params });
+    return response.data;
+  },
+  adminUpdateStatus: async (claimId: string, status: string, note?: string) => {
+    const response = await api.put(`/claims/${claimId}/status`, { status, note });
     return response.data;
   }
 };

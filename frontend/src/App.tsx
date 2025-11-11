@@ -19,6 +19,7 @@ import PolicyDetails from './pages/PolicyDetails';
 import MyPurchases from './pages/MyPurchases';
 import ClaimSubmit from './pages/ClaimSubmit';
 import MyClaims from './pages/MyClaims';
+import ClaimStatus from './pages/ClaimStatus';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -149,6 +150,11 @@ function App() {
               <Route path="/claims" element={
                 <ProtectedRoute>
                   <MyClaims />
+                </ProtectedRoute>
+              } />
+              <Route path="/claims/:id" element={
+                <ProtectedRoute>
+                  <ClaimStatus />
                 </ProtectedRoute>
               } />
               {/* New public policies browser page (supports advanced filters) */}

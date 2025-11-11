@@ -11,6 +11,7 @@ const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
+const claimRoutes = require('./routes/claim.routes');
 
 const app = express();
 
@@ -81,6 +82,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/policies', policyRoutes);
 app.use('/api/purchase', purchaseRoutes);
+app.use('/api/claims', claimRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -112,9 +114,15 @@ app.use((error, req, res, next) => {
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  logger.info(`InsureMithra API server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Only start listening when this file is the entry point. This prevents
+// Jest or other test runners from keeping the server socket open when
+// they `require('./server')` during tests. Tests should import the app
+// and manage starting/stopping the server themselves if needed.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    logger.info(`InsureMithra API server running on port ${PORT}`);
+    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
 
 module.exports = app;
