@@ -261,6 +261,36 @@ RATE_LIMIT_MAX_ATTEMPTS=5
 - `GET /api/auth/verify-email/:token` - Verify email address
 - `GET /api/auth/me` - Get current user info
 
+
+### Authentication
+- **JWT-based authentication** with configurable expiration
+- **Password hashing** using bcrypt with salt rounds
+- **Account lockout** after 5 failed login attempts (15-minute lockout)
+- **Rate limiting** on authentication endpoints
+
+### Password Security
+- Minimum 8 characters required
+- Must contain: uppercase, lowercase, number, special character
+- Secure password reset with time-limited tokens (15 minutes)
+- Email verification with 24-hour token validity
+
+### Audit Logging
+- All authentication events logged
+- Profile changes tracked
+- Failed login attempts recorded
+- Security events monitored with IP and user agent tracking
+
+## 📚 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password` - Reset password with token
+- `GET /api/auth/verify-email/:token` - Verify email address
+- `GET /api/auth/me` - Get current user info
+
 ### Profile Management
 - `GET /api/profile` - Get user profile
 - `PUT /api/profile` - Update user profile
@@ -298,6 +328,8 @@ requireUser          // Requires user or admin role
 - Deactivate users → Admin only (cannot deactivate self)
 - View system stats → Admin only
 - Activity logs → Admin can view any user's logs
+### System
+- `GET /api/health` - Health check
 
 ## 🧪 Testing
 
@@ -426,6 +458,52 @@ mongod
 
 **Backend Development:**
 ```bash
+```bash
+# Start MongoDB
+mongod
+
+# Create database (automatically created on first connection)
+# Database name: insuremithra
+```
+
+### Logging
+- **Error logs**: `logs/error.log`
+- **Combined logs**: `logs/combined.log`
+- **Audit logs**: `logs/audit.log`
+
+### Production Considerations
+- Use environment variables for all secrets
+- Set up proper MongoDB authentication
+- Configure email service for password reset
+- Set up log rotation and monitoring
+- Use HTTPS in production
+- Implement proper CORS configuration
+
+## 🚀 Complete Command Reference
+
+### Initial Setup (First Time Only)
+
+```bash
+# 1. Install backend dependencies
+npm install
+
+# 2. Install frontend dependencies
+cd frontend
+npm install
+cd ..
+
+# 3. Setup environment variables
+cp env.example .env
+# Edit .env with your MongoDB URI and JWT secret
+
+# 4. Start MongoDB (in a separate terminal)
+mongod
+```
+
+### Development Commands
+
+**Backend Development:**
+```bash
 # Start backend server with nodemon (auto-restart)
 npm run dev
 
@@ -436,6 +514,25 @@ npm start
 node simple-server.js
 
 # Run backend tests
+npm test
+```
+
+**Frontend Development:**
+```bash
+# Start React development server
+cd frontend
+npm start
+
+# Build frontend for production
+npm run build
+
+# Test frontend build
+npm run build
+
+# Run frontend tests
+npm test
+```
+
 npm test
 ```
 
@@ -586,44 +683,4 @@ This project is part of the Software Engineering course at PES University.
 ---
 
 **Note**: This is Epic 1 implementation. Future epics will build upon this authentication foundation to create a complete insurance workflow automation system.
-
-## ✅ Implemented update — Policy Search Backend (feature/policy-search-backend)
-
-What was implemented
-- Public search endpoint: `GET /api/policies/search` (no auth required). This allows browsing and filtering available policies.
-- Controller: `controllers/policy.controller.js` — implements `searchPolicies` with support for filter query params and safe parsing.
-- Routes: `routes/policy.routes.js` — exposes `/search` publicly and protects other policy routes behind authentication.
-- Model: `models/policy.model.js` — policy schema, indexes (type, insurer, text index on `model` and `name`) to speed searches.
-- Seed scripts: `utils/seed_policies.js` and `utils/seed_policies_upsert.js` to populate sample policies.
-
-Supported query parameters (all optional)
-- `type` — exact match (case-insensitive). Examples: `2W`, `4W`, `Health`, `Life`, `Travel`.
-- `model` — partial match on model/name (case-insensitive).
-- `insurer` — partial/insurer name match (case-insensitive).
-- `minPrice` / `maxPrice` — numeric filters applied to `premium`.
-
-Example request
-```
-GET /api/policies/search?type=4W&model=Swift&minPrice=2000&maxPrice=5000
-
-Response (200)
-{
-	"success": true,
-	"count": 2,
-	"data": [ /* array of policy objects */ ]
-}
-```
-
-How to seed example policies
-1. Make sure MongoDB is running and `.env` has `MONGODB_URI` set.
-2. Run the seeder (upsert style):
-```bash
-node utils/seed_policies_upsert.js
-```
-or use the programmatic helper from the server startup that calls `utils/seed_policies.js` (`seedPoliciesIfEmpty`).
-
-Notes
-- The search endpoint returns up to 1000 matching policies sorted by `premium` ascending.
-- The policy model includes text indexes on `model` and `name` for better partial searches.
-- This addition is part of Epic 2 (Policy Management) and is intended to be used by the frontend policy search pages (`frontend/src/pages/PolicySearch.tsx`).
 

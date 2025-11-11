@@ -144,6 +144,8 @@ const Register: React.FC = () => {
   const createdUser = await register(dataToSend);
   if (createdUser?.role === 'admin') navigate('/admin');
   else navigate('/dashboard');
+      await register(dataToSend);
+      navigate('/dashboard');
     } catch (err) {
       // Error is handled by AuthContext
     }
