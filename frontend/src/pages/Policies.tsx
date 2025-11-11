@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Container, TextField, Button, Card, CardContent, Typography, MenuItem, Select } from '@mui/material';
+import { Box, Container, TextField, Button, Card, CardContent, Typography, MenuItem, Select, Checkbox, FormControlLabel } from '@mui/material';
 import { policyAPI } from '../services/api';
 
 const Policies: React.FC = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({ type: '', model: '', insurer: '', minPrice: '', maxPrice: '' });
   const [policies, setPolicies] = useState<any[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchPolicies = async () => {
@@ -33,6 +34,20 @@ const Policies: React.FC = () => {
     fetchPolicies();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) return prev.filter((p) => p !== id);
+      if (prev.length >= 3) return prev; // max 3 policies
+      return [...prev, id];
+    });
+  };
+
+  const handleCompareNow = () => {
+    if (selectedIds.length < 2) return;
+    const qs = new URLSearchParams({ ids: selectedIds.join(',') }).toString();
+    navigate(`/compare?${qs}`);
+  };
 
   return (
     <Box sx={{ py: 4 }}>
@@ -67,26 +82,75 @@ const Policies: React.FC = () => {
           </div>
         </div>
 
+        {/* Compare Button */}
+        {selectedIds.length > 0 && (
+          <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              disabled={selectedIds.length < 2} 
+              onClick={handleCompareNow}
+            >
+              Compare Now ({selectedIds.length})
+            </Button>
+            {selectedIds.length > 3 && (
+              <Typography color="error">You can only compare up to 3 policies.</Typography>
+            )}
+            {selectedIds.length > 0 && selectedIds.length < 2 && (
+              <Typography color="text.secondary">Select at least 2 policies to compare</Typography>
+            )}
+          </Box>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
           {policies.length ? policies.map((p) => (
             <Card 
               key={p._id}
-              sx={{ cursor: 'pointer', '&:hover': { boxShadow: 6 } }}
-              onClick={() => navigate(`/policies/${p._id}/details`)}
+              sx={{ 
+                cursor: 'pointer',
+                border: selectedIds.includes(p._id) ? '2px solid #1976d2' : '1px solid #e0e0e0',
+                '&:hover': { boxShadow: 6 } 
+              }}
             >
               <CardContent>
-                <Typography variant="h6">{p.name}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} — {p.model}</Typography>
-                <Typography><strong>Insurer:</strong> {p.insurer}</Typography>
-                <Typography><strong>Premium:</strong> ₹{p.premium}</Typography>
-                <Typography><strong>Coverage:</strong> {p.coverage}</Typography>
-                {p.benefits?.length ? (
-                  <ul style={{ marginTop: 8 }}>
-                    {p.benefits.map((b: string, i: number) => <li key={i}>{b}</li>)}
-                  </ul>
-                ) : null}
+                {/* Checkbox for comparison */}
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectedIds.includes(p._id)}
+                      onChange={() => toggleSelect(p._id)}
+                      disabled={!selectedIds.includes(p._id) && selectedIds.length >= 3}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  }
+                  label="Compare"
+                  sx={{ mb: 1 }}
+                />
+                
+                <div onClick={() => navigate(`/policies/${p._id}/details`)}>
+                  <Typography variant="h6">{p.name}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{p.type} — {p.model}</Typography>
+                  <Typography><strong>Insurer:</strong> {p.insurer}</Typography>
+                  <Typography><strong>Premium:</strong> ₹{p.premium}</Typography>
+                  <Typography><strong>Coverage:</strong> {p.coverage}</Typography>
+                  {p.benefits?.length ? (
+                    <ul style={{ marginTop: 8 }}>
+                      {p.benefits.map((b: string, i: number) => <li key={i}>{b}</li>)}
+                    </ul>
+                  ) : null}
+                </div>
+                
                 <div style={{ marginTop: 12 }}>
-                  <Button variant="contained" color="secondary" onClick={() => window.location.href = `/purchase/${p._id}`}>Buy Now</Button>
+                  <Button 
+                    variant="contained" 
+                    color="secondary" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/purchase/${p._id}`);
+                    }}
+                  >
+                    Buy Now
+                  </Button>
                 </div>
               </CardContent>
             </Card>

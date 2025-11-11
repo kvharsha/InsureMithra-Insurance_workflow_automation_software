@@ -40,8 +40,6 @@ const searchPolicies = async (req, res) => {
   }
 };
 
-module.exports = { searchPolicies };
-
 // POST /api/policies/compare
 // Body: { policyIds: ["id1","id2", ...] }
 const comparePolicies = async (req, res) => {
