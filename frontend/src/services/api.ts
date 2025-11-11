@@ -134,4 +134,11 @@ export const profileAPI = {
   },
 };
 
+export const policyAPI = {
+  searchPolicies: async (params: { type?: string; insurer?: string; minPremium?: number | string; maxPremium?: number | string }) => {
+    const response = await api.get('/policies/search', { params });
+    return response.data;
+  },
+};
+
 export default api;

@@ -9,6 +9,7 @@ require('dotenv').config();
 const { logger } = require('./config/logger');
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
+const policyRoutes = require('./routes/policy.routes');
 
 const app = express();
 
@@ -77,6 +78,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/insuremit
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/policies', policyRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

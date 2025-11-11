@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -11,6 +11,8 @@ import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
+import PolicySearch from './pages/PolicySearch';
+import Policies from './pages/Policies';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -113,6 +115,13 @@ function App() {
                   <Profile />
                 </ProtectedRoute>
               } />
+              <Route path="/policy-search" element={
+                <ProtectedRoute>
+                  <PolicySearch />
+                </ProtectedRoute>
+              } />
+              {/* New public policies browser page (supports advanced filters) */}
+              <Route path="/policies" element={<Policies />} />
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
@@ -152,6 +161,9 @@ const AppHeader: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {user ? (
           <>
+            <button onClick={() => navigate('/policy-search')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              Policy Search
+            </button>
             <div style={{ textAlign: 'right', marginRight: 8 }}>
               <div style={{ fontSize: 14, color: '#333' }}>{user.firstName} {user.lastName}</div>
               <div style={{ fontSize: 12, color: '#666' }}>Role: {user.role}</div>

@@ -17,7 +17,14 @@ const authenticate = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const secret = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'dev_secret_change_me');
+    if (!secret) {
+      return res.status(500).json({
+        error: 'Server configuration error: JWT secret not set.',
+        code: 'MISSING_JWT_SECRET'
+      });
+    }
+    const decoded = jwt.verify(token, secret);
     
     // Find user and check if still active
     const user = await User.findById(decoded.userId).select('-password');

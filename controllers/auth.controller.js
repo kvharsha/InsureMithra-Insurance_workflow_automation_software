@@ -8,9 +8,15 @@ const { sendEmail } = require('../config/mailer');
  * Generate JWT token
  */
 const generateToken = (userId) => {
+  const secret = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'dev_secret_change_me');
+  if (!secret) {
+    const err = new Error('JWT secret is not configured');
+    err.status = 500;
+    throw err;
+  }
   return jwt.sign(
     { userId },
-    process.env.JWT_SECRET,
+    secret,
     { expiresIn: process.env.JWT_EXPIRE || '7d' }
   );
 };
