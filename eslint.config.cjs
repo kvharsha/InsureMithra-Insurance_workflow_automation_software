@@ -5,18 +5,17 @@ const importPlugin = require('eslint-plugin-import');
 module.exports = [
   js.configs.recommended,
   {
-    files: ['**/*.{js,mjs}'],
+    // Include .cjs files (Jest lifecycle and script files) so the flat config
+    // applies to both module and CommonJS script files.
+    files: ['**/*.{js,mjs,cjs}'],
     languageOptions: {
-      ecmaVersion: 2022,
+      ecmaVersion: 2021,
       sourceType: 'module',
       globals: {
-        // Node globals
-        require: 'readonly',
-        module: 'readonly',
-        __dirname: 'readonly',
-        process: 'readonly',
-        console: 'readonly',
-        setTimeout: 'readonly',
+  // Node globals
+  require: 'readonly',
+  module: 'readonly',
+  setTimeout: 'readonly',
         // Jest globals
         describe: 'readonly',
         it: 'readonly',
@@ -25,7 +24,13 @@ module.exports = [
         beforeAll: 'readonly',
         afterAll: 'readonly',
         beforeEach: 'readonly',
-        afterEach: 'readonly'
+        afterEach: 'readonly',
+        // Also expose jest global and common Node globals used in scripts/tests
+        jest: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        process: 'readonly',
+        console: 'readonly'
       }
     },
     plugins: { node: nodePlugin, import: importPlugin },

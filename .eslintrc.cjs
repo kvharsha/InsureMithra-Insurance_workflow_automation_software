@@ -1,7 +1,7 @@
 module.exports = {
   env: {
     node: true,
-    es2022: true,
+    es2021: true,
     jest: true,
   },
   extends: [
@@ -11,9 +11,26 @@ module.exports = {
     'prettier',
   ],
   parserOptions: {
-    ecmaVersion: 2022,
+    ecmaVersion: 2021,
     sourceType: 'module',
   },
+  globals: {
+    describe: 'readonly',
+    test: 'readonly',
+    expect: 'readonly',
+    beforeEach: 'readonly',
+    afterEach: 'readonly',
+    beforeAll: 'readonly',
+    afterAll: 'readonly',
+    // Jest runtime helpers
+    jest: 'readonly',
+    // Node globals sometimes used in scripts/tests
+    Buffer: 'readonly',
+    __dirname: 'readonly',
+    process: 'readonly',
+    console: 'readonly'
+  },
+
   rules: {
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'no-console': 'off',

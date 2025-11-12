@@ -21,7 +21,7 @@ describe('StorageService', () => {
   });
 
   test('sanitizeFilename removes special chars and limits length', () => {
-    const input = 'my/evil\\name..txt?<>:\\\"*|';
+    const input = 'my/evil\\name..txt?<>:"*|';
     const out = storage.sanitizeFilename(input);
     expect(out).toMatch(/^[a-zA-Z0-9._-]+$/);
     expect(out.length).toBeLessThanOrEqual(255);

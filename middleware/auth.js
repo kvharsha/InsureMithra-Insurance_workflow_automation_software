@@ -159,10 +159,6 @@ const logActivity = (action) => {
 const checkRateLimit = (req, res, next) => {
   // This would integrate with a rate limiting service like Redis
   // For now, we'll use a simple in-memory approach
-  const key = `rate_limit_${req.user?.id || req.ip}`;
-  const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
-  const maxAttempts = 5;
 
   // In a production environment, you'd use Redis or similar
   // For now, we'll just pass through

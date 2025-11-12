@@ -1,3 +1,4 @@
+/* eslint-env node,jest */
 const fs = require('fs');
 const path = require('path');
 
@@ -13,7 +14,7 @@ if (fs.existsSync(infoPath)) {
       // log for visibility in tests
       // console.log('jest-setup: set MONGODB_URI to', info.uri);
     }
-  } catch (e) {
+  } catch {
     // ignore; tests will fallback to localhost
   }
 }

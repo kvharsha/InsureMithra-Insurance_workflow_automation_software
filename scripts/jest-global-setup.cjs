@@ -1,3 +1,4 @@
+/* eslint-env node,jest */
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const fs = require('fs');
 const path = require('path');

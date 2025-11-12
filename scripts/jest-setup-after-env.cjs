@@ -1,3 +1,4 @@
+/* eslint-env node,jest */
 const mongoose = require('mongoose');
 
 // This script runs once per test file (setupFilesAfterEnv).
@@ -18,7 +19,6 @@ module.exports = async () => {
       }
     } catch (e) {
       // Log but don't fail; tests will surface any real problems.
-      // eslint-disable-next-line no-console
       console.warn('jest-setup-after-env: dropDatabase failed (ignored):', e && e.message);
     }
   });
