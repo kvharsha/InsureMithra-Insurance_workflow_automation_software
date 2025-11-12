@@ -1,6 +1,8 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
+  // Default to port 5001 where the backend server is running
+  // You can override this with REACT_APP_API_URL environment variable
+  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
   TIMEOUT: 10000,
 };
 

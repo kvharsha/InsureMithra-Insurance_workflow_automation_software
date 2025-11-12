@@ -134,4 +134,71 @@ export const profileAPI = {
   },
 };
 
+export const policyAPI = {
+  searchPolicies: async (params: { type?: string; insurer?: string; minPremium?: number | string; maxPremium?: number | string }) => {
+    const response = await api.get('/policies/search', { params });
+    return response.data;
+  },
+  comparePolicies: async (policyIds: string[]) => {
+    const response = await api.post('/policies/compare', { policyIds });
+    return response.data;
+  },
+  getPolicyById: async (policyId: string) => {
+    const response = await api.get(`/policies/${policyId}`);
+    return response.data;
+  },
+};
+
+export const purchaseAPI = {
+  initiate: async (policyId: string) => {
+    const response = await api.post('/purchase/initiate', { policyId });
+    return response.data;
+  },
+  complete: async (purchaseId: string) => {
+    const response = await api.post('/purchase/complete', { purchaseId });
+    return response.data;
+  },
+  get: async (purchaseId: string) => {
+    const response = await api.get(`/purchase/${purchaseId}`);
+    return response.data;
+  },
+  getUserPurchases: async () => {
+    const response = await api.get('/purchase/my');
+    return response.data;
+  },
+  download: async (purchaseId: string) => {
+    // returns blob
+    const response = await api.get(`/purchase/${purchaseId}/download`, { responseType: 'blob' });
+    return response.data;
+  }
+};
+
+export const claimAPI = {
+  submit: async (formData: FormData) => {
+    const response = await api.post('/claims', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+  getUserClaims: async () => {
+    // use /claims/my to fetch claims belonging to the authenticated user
+    const response = await api.get('/claims/my');
+    return response.data;
+  },
+  getClaimById: async (claimId: string) => {
+    const response = await api.get(`/claims/${claimId}`);
+    return response.data;
+  }
+  ,
+  // Admin APIs for claims
+  adminGetClaims: async (params?: { page?: number; limit?: number; status?: string; userEmail?: string }) => {
+    const response = await api.get('/claims/admin', { params });
+    return response.data;
+  },
+  adminUpdateStatus: async (claimId: string, status: string, note?: string) => {
+    const response = await api.put(`/claims/${claimId}/status`, { status, note });
+    return response.data;
+  }
+};
+
 export default api;

@@ -28,6 +28,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import AdminClaims from './AdminClaims';
 import {
   People,
   AdminPanelSettings,
@@ -292,6 +293,7 @@ const AdminDashboard: React.FC = () => {
           >
             <Tab label="User Management" />
             <Tab label="Activity Monitor" />
+            <Tab label="Claims" />
           </Tabs>
 
           {/* User Management Tab */}
@@ -391,6 +393,12 @@ const AdminDashboard: React.FC = () => {
                   This feature will be implemented in the monitoring module.
                 </Typography>
               </Box>
+            </CardContent>
+          )}
+
+          {tabValue === 2 && (
+            <CardContent>
+              <AdminClaims />
             </CardContent>
           )}
         </Card>

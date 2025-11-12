@@ -8,6 +8,9 @@ require('dotenv').config();
 
 const app = express();
 
+// Honor CRA proxy headers in development
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -46,6 +49,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/insuremit
 })
 .then(() => {
   console.log('✅ Connected to MongoDB successfully');
+  // Seed sample policies on first run (dev/demo)
+  try {
+    require('./utils/seed_policies').seedPoliciesIfEmpty(console);
+  } catch (e) {
+    console.error('Seed failed:', e);
+  }
 })
 .catch((error) => {
   console.error('❌ MongoDB connection error:', error);
@@ -55,10 +64,16 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/insuremit
 // Import routes
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
+const policyRoutes = require('./routes/policy.routes');
+const purchaseRoutes = require('./routes/purchase.routes');
+const claimRoutes = require('./routes/claim.routes');
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/policies', policyRoutes);
+app.use('/api/purchase', purchaseRoutes);
+app.use('/api/claims', claimRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -111,6 +126,8 @@ app.listen(PORT, () => {
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/test`);
   console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth/*`);
   console.log(`👤 Profile endpoints: http://localhost:${PORT}/api/profile/*`);
+  console.log(`📄 Policy endpoints: http://localhost:${PORT}/api/policies/*`);
+  console.log(`💳 Purchase endpoints: http://localhost:${PORT}/api/purchase/*`);
 });
 
 module.exports = app;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -11,6 +11,15 @@ import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
+import PolicySearch from './pages/PolicySearch';
+import Policies from './pages/Policies';
+import ComparePolicies from './pages/ComparePolicies';
+import PolicyPurchase from './pages/PolicyPurchase';
+import PolicyDetails from './pages/PolicyDetails';
+import MyPurchases from './pages/MyPurchases';
+import ClaimSubmit from './pages/ClaimSubmit';
+import MyClaims from './pages/MyClaims';
+import ClaimStatus from './pages/ClaimStatus';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -113,6 +122,44 @@ function App() {
                   <Profile />
                 </ProtectedRoute>
               } />
+              <Route path="/policy-search" element={
+                <ProtectedRoute>
+                  <PolicySearch />
+                </ProtectedRoute>
+              } />
+              <Route path="/compare" element={
+                <ProtectedRoute>
+                  <ComparePolicies />
+                </ProtectedRoute>
+              } />
+              <Route path="/purchase/:policyId" element={
+                <ProtectedRoute>
+                  <PolicyPurchase />
+                </ProtectedRoute>
+              } />
+              <Route path="/my-purchases" element={
+                <ProtectedRoute>
+                  <MyPurchases />
+                </ProtectedRoute>
+              } />
+              <Route path="/claims/submit" element={
+                <ProtectedRoute>
+                  <ClaimSubmit />
+                </ProtectedRoute>
+              } />
+              <Route path="/claims" element={
+                <ProtectedRoute>
+                  <MyClaims />
+                </ProtectedRoute>
+              } />
+              <Route path="/claims/:id" element={
+                <ProtectedRoute>
+                  <ClaimStatus />
+                </ProtectedRoute>
+              } />
+              {/* New public policies browser page (supports advanced filters) */}
+              <Route path="/policies" element={<Policies />} />
+              <Route path="/policies/:id/details" element={<PolicyDetails />} />
               <Route path="/admin" element={
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AdminDashboard />
@@ -133,25 +180,33 @@ export default App;
 
 const AppHeader: React.FC = () => {
   const { user, logout } = useAuth();
-  const navigate = (path?: string) => {
-    // simple navigate using window.location to avoid importing router here
-    if (path) window.location.href = path;
-  };
+  const navigate = useNavigate();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
   return (
-    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 20px', background: '#fff', borderBottom: '1px solid #eee', position: 'sticky', top: 0, zIndex: 1000 }}>
+    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #eee', position: 'sticky', top: 0, zIndex: 1000 }}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <img src="/logo192.png" alt="InsureMithra" style={{ height: 36, marginRight: 12 }} />
-        <h3 style={{ margin: 0, color: '#1976d2' }}>InsureMithra</h3>
+        <h3 style={{ margin: 0, color: '#1976d2' }}>🛡️ InsureMithra</h3>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {user ? (
           <>
+            <button onClick={() => navigate('/policies')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              Browse Policies
+            </button>
+            <button onClick={() => navigate('/my-purchases')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              My Purchases
+            </button>
+            <button onClick={() => navigate('/claims')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              My Claims
+            </button>
+            <button onClick={() => navigate('/policy-search')} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff' }}>
+              Policy Search
+            </button>
             <div style={{ textAlign: 'right', marginRight: 8 }}>
               <div style={{ fontSize: 14, color: '#333' }}>{user.firstName} {user.lastName}</div>
               <div style={{ fontSize: 12, color: '#666' }}>Role: {user.role}</div>

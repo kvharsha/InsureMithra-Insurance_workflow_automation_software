@@ -99,6 +99,20 @@ const auditLog = {
     });
   },
 
+  accessAttempt: (userId, email, url, method, granted, ip, reason) => {
+    auditLogger.info('Access attempt', {
+      event: 'ACCESS_ATTEMPT',
+      userId: userId || null,
+      email: email || null,
+      url: url || null,
+      method: method || null,
+      granted: !!granted,
+      reason: reason || null,
+      ip: ip || null,
+      timestamp: new Date().toISOString()
+    });
+  },
+
   failedLogin: (email, ip, reason) => {
     auditLogger.warn('Failed login attempt', {
       event: 'FAILED_LOGIN',
