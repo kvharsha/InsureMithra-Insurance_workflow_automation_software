@@ -263,11 +263,24 @@ const getActivityLog = async (req, res) => {
     
     // If userId specified, get logs for that user (admin can view any user)
     const targetUserId = userId || req.user.id;
+
+    // Authorization: allow if requester is admin OR requesting their own logs
+    if (userId) {
+      const isAdmin = req.user && req.user.role === 'admin';
+      const isSelf = String(req.user && (req.user.id || req.user._id)) === String(userId);
+      if (!isAdmin && !isSelf) {
+        return res.status(403).json({
+          error: 'Access denied. Insufficient permissions.',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+    }
     
     // For demo purposes, return sample activity log
     // In production, this would query an audit log collection
     res.json({
-      userId: targetUserId,
+  // Ensure userId is returned as a string for stable comparisons in tests
+  userId: targetUserId && targetUserId.toString ? targetUserId.toString() : String(targetUserId),
       activities: [
         {
           timestamp: new Date(Date.now() - 86400000).toISOString(),

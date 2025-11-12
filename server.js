@@ -12,6 +12,7 @@ const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
 const claimRoutes = require('./routes/claim.routes');
+const { requireAdmin } = require('./middleware/roleAuth');
 
 const app = express();
 
@@ -93,6 +94,14 @@ app.get('/api/health', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// Test-only endpoints (registered only in test environment)
+if (process.env.NODE_ENV === 'test') {
+  // A small test-only admin-protected route used by unit tests
+  app.get('/__test/admin-only', requireAdmin, (req, res) => {
+    res.json({ success: true, message: 'Admin access granted' });
+  });
+}
 
 // 404 handler
 app.use('*', (req, res) => {
