@@ -176,9 +176,10 @@ const validateTokenFormat = (req, res, next) => {
   const authHeader = req.header('Authorization');
   
   if (!authHeader) {
+    // Normalize missing auth header message to match authenticate() for tests
     return res.status(401).json({
-      error: 'Authorization header is required.',
-      code: 'MISSING_AUTH_HEADER'
+      error: 'Access denied. No token provided.',
+      code: 'NO_TOKEN'
     });
   }
 

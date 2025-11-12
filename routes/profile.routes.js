@@ -116,8 +116,8 @@ router.put('/', updateProfile); // Removed validation middleware
 router.post('/change-password', changePasswordValidation, handleValidationErrors, changePassword);
 router.post('/deactivate', deactivateAccountValidation, handleValidationErrors, deactivateAccount);
 
-// Admin only routes
-router.get('/activity-log', requireAdmin, getActivityLog);
+// Activity log: allow controller to decide (admin or same user)
+router.get('/activity-log', getActivityLog);
 router.get('/admin/users', requireAdmin, getAllUsers);
 router.get('/admin/users/:userId', requireAdmin, getUserById);
 router.put('/admin/users/:userId/role', requireAdmin, updateUserRole);
