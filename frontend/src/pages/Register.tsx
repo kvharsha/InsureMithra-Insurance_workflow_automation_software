@@ -45,8 +45,15 @@ const Register: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   
-  const { register, loading, error } = useAuth();
+  const { user, register, loading, error } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to dashboard if already logged in
+  React.useEffect(() => {
+    if (user) {
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
