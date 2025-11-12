@@ -9,7 +9,7 @@
     "server": "node server.js",
   "test": "jest",
   "test:watch": "jest --watch",
-  "test:ci": "mkdir -p reports/junit && jest --runInBand --forceExit --reporters=default --reporters=jest-junit",
+  "test:ci": "node -e \"require('fs').mkdirSync('reports/junit', { recursive: true })\" && jest --runInBand --forceExit --reporters=default --reporters=jest-junit",
   "test:backend": "jest --testPathPattern=tests --runInBand --config=jest.config.cjs",
   "coverage:backend": "jest --coverage --coverageDirectory=coverage --coverageReporters=json-summary --coverageReporters=lcov --testPathPattern=tests --config=jest.config.cjs",
   "lint": "eslint . --ext .js",
