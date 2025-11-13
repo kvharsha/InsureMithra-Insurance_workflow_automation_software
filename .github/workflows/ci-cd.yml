@@ -78,7 +78,8 @@ jobs:
         working-directory: frontend
         env:
           CI: "true"
-        run: npm run test:ci
+        # Create junit output using CRA's test runner; disable watch mode for CI
+        run: npm test -- --watchAll=false --reporters=default --reporters=jest-junit
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -124,7 +125,8 @@ jobs:
         working-directory: frontend
         env:
           CI: "true"
-        run: npm run coverage
+        # CRA exposes coverage through `npm test -- --coverage`
+        run: npm test -- --coverage --watchAll=false
 
       - name: Enforce combined threshold 75%
         shell: bash
