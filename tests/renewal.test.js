@@ -236,48 +236,51 @@ describe('Policy Renewal API', () => {
   });
 
   describe('Renewal Payment Flow', () => {
-    it('should update expiry date on successful payment', async (done) => {
-      const response = await request(app)
+    it('should update expiry date on successful payment', (done) => {
+      request(app)
         .post('/api/renewals/initiate')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           purchaseId: testPurchase._id,
           paymentMethod: 'card'
         })
-        .expect(202);
+        .expect(202)
+        .end(async (err, response) => {
+          if (err) return done(err);
 
-      const transactionId = response.body.transactionId;
+          const transactionId = response.body.transactionId;
 
-      // Wait for async payment processing (max 5 seconds)
-      setTimeout(async () => {
-        try {
-          const renewal = await Renewal.findOne({ transactionId });
+          // Wait for async payment processing (max 5 seconds)
+          setTimeout(async () => {
+            try {
+              const renewal = await Renewal.findOne({ transactionId });
+              
+              // Most renewals should succeed in sandbox (90% success rate)
+              if (renewal.status === 'success') {
+                expect(renewal.newExpiryDate).toBeDefined();
+                
+                // Check purchase was updated
+                const updatedPurchase = await Purchase.findById(testPurchase._id);
+                expect(updatedPurchase.expiryDate).not.toEqual(testPurchase.expiryDate);
+                expect(updatedPurchase.renewalStatus).toBe('renewed');
+                expect(updatedPurchase.lastRenewedAt).toBeDefined();
+                expect(updatedPurchase.renewalHistory).toHaveLength(1);
+                expect(updatedPurchase.renewalHistory[0].transactionId).toBe(transactionId);
+              } else if (renewal.status === 'failed') {
+                expect(renewal.errorMessage).toBeDefined();
+                
+                // Purchase should not be updated on failure
+                const updatedPurchase = await Purchase.findById(testPurchase._id);
+                expect(updatedPurchase.expiryDate).toEqual(testPurchase.expiryDate);
+                expect(updatedPurchase.renewalStatus).toBe('active');
+              }
           
-          // Most renewals should succeed in sandbox (90% success rate)
-          if (renewal.status === 'success') {
-            expect(renewal.newExpiryDate).toBeDefined();
-            
-            // Check purchase was updated
-            const updatedPurchase = await Purchase.findById(testPurchase._id);
-            expect(updatedPurchase.expiryDate).not.toEqual(testPurchase.expiryDate);
-            expect(updatedPurchase.renewalStatus).toBe('renewed');
-            expect(updatedPurchase.lastRenewedAt).toBeDefined();
-            expect(updatedPurchase.renewalHistory).toHaveLength(1);
-            expect(updatedPurchase.renewalHistory[0].transactionId).toBe(transactionId);
-          } else if (renewal.status === 'failed') {
-            expect(renewal.errorMessage).toBeDefined();
-            
-            // Purchase should not be updated on failure
-            const updatedPurchase = await Purchase.findById(testPurchase._id);
-            expect(updatedPurchase.expiryDate).toEqual(testPurchase.expiryDate);
-            expect(updatedPurchase.renewalStatus).toBe('active');
-          }
-          
-          done();
-        } catch (error) {
-          done(error);
-        }
-      }, 4000);
+              done();
+            } catch (error) {
+              done(error);
+            }
+          }, 4000);
+        });
     }, 10000); // 10 second timeout for this test
   });
 

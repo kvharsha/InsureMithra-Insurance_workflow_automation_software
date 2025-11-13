@@ -8,7 +8,8 @@
     "dev": "nodemon start-server.js",
     "server": "node server.js",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "test:renewal": "jest tests/renewal.test.js --coverage --collectCoverageFrom='controllers/renewal.controller.js' --collectCoverageFrom='routes/renewal.routes.js' --collectCoverageFrom='models/renewal.model.js' --collectCoverageFrom='services/payment.service.js' --collectCoverageFrom='utils/renewalCalculator.js' --collectCoverageFrom='utils/transactionId.js'"
   },
   "keywords": [
     "insurance",

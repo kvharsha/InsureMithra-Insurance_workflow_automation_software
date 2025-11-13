@@ -204,7 +204,13 @@ const initiateRenewal = async (req, res) => {
 const completeRenewalSuccess = async (renewal, purchase, paymentResult) => {
   try {
     // Calculate new expiry date
-    const policy = await Policy.findById(purchase.policyId);
+    // Re-fetch purchase with populated policy to get tenure
+    const fullPurchase = await Purchase.findById(purchase._id).populate('policyId');
+    if (!fullPurchase || !fullPurchase.policyId) {
+      throw new Error('Purchase or policy not found');
+    }
+    
+    const policy = fullPurchase.policyId;
     const newExpiryDate = calculateNewExpiry(purchase.expiryDate, policy.tenure);
 
     // Update renewal record

@@ -19,10 +19,10 @@ router.get('/eligibility/:purchaseId', checkEligibility);
 // Initiate renewal process
 router.post('/initiate', initiateRenewal);
 
+// Get user's renewal history (must come before /:renewalId to avoid conflict)
+router.get('/my', getMyRenewals);
+
 // Get renewal status
 router.get('/:renewalId', getRenewalStatus);
-
-// Get user's renewal history
-router.get('/my', getMyRenewals);
 
 module.exports = router;
