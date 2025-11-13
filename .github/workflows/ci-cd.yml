@@ -10,151 +10,150 @@ permissions:
   contents: read
 
 jobs:
-  # Temporarily commented out - working on lint/security first
-  # build:
-  #   name: Build (backend + frontend)
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
+  build:
+    name: Build (backend + frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-  #     # Node toolchain
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "20"
-  #         cache: "npm"
+      # Node toolchain
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
 
-  #     - name: Install backend deps
-  #       run: |
-  #         npm ci
+      - name: Install backend deps
+        run: |
+          npm ci
 
-  #     - name: Install frontend deps
-  #       if: hashFiles('frontend/package.json') != ''
-  #       working-directory: frontend
-  #       run: |
-  #         rm -rf node_modules
-  #         npm cache clean --force || true
-  #         npm ci || npm install
+      - name: Install frontend deps
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        run: |
+          rm -rf node_modules
+          npm cache clean --force || true
+          npm ci || npm install
 
-  #     - uses: actions/setup-python@v5
-  #       if: hashFiles('**/requirements.txt') != ''
-  #       with:
-  #         python-version: "3.11"
+      - uses: actions/setup-python@v5
+        if: hashFiles('**/requirements.txt') != ''
+        with:
+          python-version: "3.11"
 
-  # test:
-  #   name: Test (unit + integration + system)
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "20"
-  #         cache: "npm"
+  test:
+    name: Test (unit + integration + system)
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
 
-  #     - name: Install backend deps
-  #       run: npm ci
+      - name: Install backend deps
+        run: npm ci
 
-  #     - name: Install frontend deps
-  #       if: hashFiles('frontend/package.json') != ''
-  #       working-directory: frontend
-  #       run: |
-  #         rm -rf node_modules
-  #         npm cache clean --force || true
-  #         npm ci || npm install
+      - name: Install frontend deps
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        run: |
+          rm -rf node_modules
+          npm cache clean --force || true
+          npm ci || npm install
 
-  #     - name: Start MongoDB
-  #       uses: supercharge/mongodb-github-action@v1
-  #       with:
-  #         mongodb-version: '6.0'
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@v1
+        with:
+          mongodb-version: '6.0'
 
-  #     - name: Run backend tests
-  #       env:
-  #         MONGODB_URI: mongodb://localhost:27017/ci_test
-  #         NODE_ENV: test
-  #       run: |
-  #         npm run test:ci
+      - name: Run backend tests
+        env:
+          MONGODB_URI: mongodb://localhost:27017/ci_test
+          NODE_ENV: test
+        run: |
+          npm run test:ci
 
-  #     - name: Run frontend tests
-  #       if: hashFiles('frontend/package.json') != ''
-  #       working-directory: frontend
-  #       env:
-  #         CI: "true"
-  #       # Create junit output using CRA's test runner; disable watch mode for CI
-  #       run: npm test -- --watchAll=false --reporters=default --reporters=jest-junit
+      - name: Run frontend tests
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        env:
+          CI: "true"
+        # Create junit output using CRA's test runner; disable watch mode for CI
+        run: npm test -- --watchAll=false --reporters=default --reporters=jest-junit
 
-  #     - name: Upload test results
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: test-results
-  #         path: |
-  #           reports/junit/**/*.xml
-  #           frontend/reports/junit/**/*.xml
-  #         if-no-files-found: ignore
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            reports/junit/**/*.xml
+            frontend/reports/junit/**/*.xml
+          if-no-files-found: ignore
 
-  # coverage:
-  #   name: Coverage (>= 75% gate)
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "20"
-  #         cache: "npm"
-  #     - name: Install backend deps
-  #       run: npm ci
-  #     - name: Install frontend deps
-  #       if: hashFiles('frontend/package.json') != ''
-  #       working-directory: frontend
-  #       run: |
-  #         rm -rf node_modules
-  #         npm cache clean --force || true
-  #         npm ci || npm install
+  coverage:
+    name: Coverage (>= 75% gate)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install backend deps
+        run: npm ci
+      - name: Install frontend deps
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        run: |
+          rm -rf node_modules
+          npm cache clean --force || true
+          npm ci || npm install
 
-  #     - name: Start MongoDB for coverage
-  #       uses: supercharge/mongodb-github-action@v1
-  #       with:
-  #         mongodb-version: '6.0'
+      - name: Start MongoDB for coverage
+        uses: supercharge/mongodb-github-action@v1
+        with:
+          mongodb-version: '6.0'
 
-  #     - name: Generate backend coverage (NYC)
-  #       env:
-  #         MONGODB_URI: mongodb://localhost:27017/ci_test
-  #       run: npm run coverage:backend
+      - name: Generate backend coverage (NYC)
+        env:
+          MONGODB_URI: mongodb://localhost:27017/ci_test
+        run: npm run coverage:backend
 
-  #     - name: Generate frontend coverage (CRA)
-  #       if: hashFiles('frontend/package.json') != ''
-  #       working-directory: frontend
-  #       env:
-  #         CI: "true"
-  #       # CRA exposes coverage through `npm test -- --coverage`
-  #       run: npm test -- --coverage --watchAll=false
+      - name: Generate frontend coverage (CRA)
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        env:
+          CI: "true"
+        # CRA exposes coverage through `npm test -- --coverage`
+        run: npm test -- --coverage --watchAll=false
 
-  #     - name: Enforce combined threshold 75%
-  #       shell: bash
-  #       run: |
-  #         echo "--- debug: coverage directories ---"
-  #         ls -la coverage || true
-  #         ls -la frontend/coverage || true
-  #         echo "--- debug: coverage/coverage-summary.json (if present) ---"
-  #         if [ -f coverage/coverage-summary.json ]; then head -n 200 coverage/coverage-summary.json; else echo "no backend summary"; fi
-  #         echo "--- debug: frontend/coverage/coverage-summary.json (if present) ---"
-  #         if [ -f frontend/coverage/coverage-summary.json ]; then head -n 200 frontend/coverage/coverage-summary.json; else echo "no frontend summary"; fi
-  #         echo "--- running threshold check ---"
-  #         node scripts/check-coverage-threshold.mjs 75
+      - name: Enforce combined threshold 75%
+        shell: bash
+        run: |
+          echo "--- debug: coverage directories ---"
+          ls -la coverage || true
+          ls -la frontend/coverage || true
+          echo "--- debug: coverage/coverage-summary.json (if present) ---"
+          if [ -f coverage/coverage-summary.json ]; then head -n 200 coverage/coverage-summary.json; else echo "no backend summary"; fi
+          echo "--- debug: frontend/coverage/coverage-summary.json (if present) ---"
+          if [ -f frontend/coverage/coverage-summary.json ]; then head -n 200 frontend/coverage/coverage-summary.json; else echo "no frontend summary"; fi
+          echo "--- running threshold check ---"
+          node scripts/check-coverage-threshold.mjs 75
 
-  #     - name: Upload coverage report
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: coverage-report
-  #         path: |
-  #           coverage/
-  #           frontend/coverage/
-  #           reports/coverage-summary.json
-  #         if-no-files-found: error
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage/
+            frontend/coverage/
+            reports/coverage-summary.json
+          if-no-files-found: error
 
   lint:
     name: Lint (pylint >=7.5, ESLint 0 errors <10 warnings)
-    # needs: coverage  # Commented out - run lint independently
+    needs: coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -203,7 +202,7 @@ jobs:
 
   security:
     name: Security (Bandit/Safety/npm audit/Secrets)
-    # needs: lint  # Commented out - run security independently
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
