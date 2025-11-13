@@ -22,4 +22,17 @@ module.exports = async () => {
       console.warn('jest-setup-after-env: dropDatabase failed (ignored):', e && e.message);
     }
   });
+  
+  // Also drop the database before each individual test to avoid cases
+  // where tests in the same file reuse identical seeded data and cause
+  // duplicate-key errors. This ensures a clean slate for every `it`.
+  beforeEach(async () => {
+    try {
+      if (mongoose && mongoose.connection && mongoose.connection.readyState) {
+        await mongoose.connection.dropDatabase();
+      }
+    } catch (e) {
+      console.warn('jest-setup-after-env: dropDatabase (beforeEach) failed (ignored):', e && e.message);
+    }
+  });
 };
