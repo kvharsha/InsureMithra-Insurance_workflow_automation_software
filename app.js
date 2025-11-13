@@ -7,6 +7,9 @@ const rateLimit = require('express-rate-limit');
 const { logger } = require('./config/logger');
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
+const policyRoutes = require('./routes/policy.routes');
+const purchaseRoutes = require('./routes/purchase.routes');
+const renewalRoutes = require('./routes/renewal.routes');
 
 const app = express();
 
@@ -62,6 +65,9 @@ app.use(morgan('combined', { stream: { write: message => logger.info(message.tri
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/policies', policyRoutes);
+app.use('/api/purchases', purchaseRoutes);
+app.use('/api/renewals', renewalRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

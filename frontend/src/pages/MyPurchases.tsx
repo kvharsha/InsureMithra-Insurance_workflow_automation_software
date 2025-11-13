@@ -11,13 +11,23 @@ import {
   CircularProgress,
   Alert,
   Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DownloadIcon from '@mui/icons-material/Download';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import { purchaseAPI } from '../services/api';
+import AddIcon from '@mui/icons-material/Add';
+import { purchaseAPI, policyAPI } from '../services/api';
 
 interface Purchase {
   _id: string;
@@ -39,6 +49,8 @@ interface Purchase {
   purchaseDate: string;
   startDate: string;
   endDate: string;
+  expiryDate?: string;
+  renewalStatus?: string;
   createdAt: string;
 }
 
@@ -47,16 +59,24 @@ const MyPurchases: React.FC = () => {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showTestDialog, setShowTestDialog] = useState(false);
+  const [testPolicyId, setTestPolicyId] = useState('');
+  const [testDaysUntilExpiry, setTestDaysUntilExpiry] = useState(5);
+  const [policies, setPolicies] = useState<any[]>([]);
+  const [creatingTest, setCreatingTest] = useState(false);
 
   useEffect(() => {
     fetchPurchases();
+    fetchPolicies();
   }, []);
 
   const fetchPurchases = async () => {
     try {
       setLoading(true);
       const response = await purchaseAPI.getUserPurchases();
+      console.log('Purchases response:', response); // Debug
       if (response.success) {
+        console.log('Purchases data:', response.data); // Debug
         setPurchases(response.data);
       } else {
         setError('Failed to load your purchases');
@@ -66,6 +86,42 @@ const MyPurchases: React.FC = () => {
       setError(err.response?.data?.message || 'Failed to load purchases');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPolicies = async () => {
+    try {
+      const response = await policyAPI.searchPolicies({});
+      if (response.success) {
+        setPolicies(response.data);
+      }
+    } catch (err: any) {
+      console.error('Error fetching policies:', err);
+    }
+  };
+
+  const handleCreateTestPurchase = async () => {
+    if (!testPolicyId) {
+      setError('Please select a policy');
+      return;
+    }
+
+    try {
+      setCreatingTest(true);
+      setError(null);
+      const response = await purchaseAPI.createTestPurchase(testPolicyId, testDaysUntilExpiry);
+      if (response.success) {
+        setShowTestDialog(false);
+        setTestPolicyId('');
+        setTestDaysUntilExpiry(5);
+        fetchPurchases(); // Refresh the list
+        alert(`Test purchase created! Expires in ${testDaysUntilExpiry} days.`);
+      }
+    } catch (err: any) {
+      console.error('Error creating test purchase:', err);
+      setError(err.response?.data?.message || 'Failed to create test purchase');
+    } finally {
+      setCreatingTest(false);
     }
   };
 
@@ -110,6 +166,20 @@ const MyPurchases: React.FC = () => {
     }).format(amount);
   };
 
+  const calculateDaysUntilExpiry = (expiryDate: string) => {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const diffTime = expiry.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const isEligibleForRenewal = (purchase: Purchase) => {
+    if (!purchase.expiryDate || purchase.renewalStatus === 'renewed') return false;
+    const daysLeft = calculateDaysUntilExpiry(purchase.expiryDate);
+    return daysLeft >= 0 && daysLeft <= 7;
+  };
+
   const handleDownloadReceipt = (purchaseId: string) => {
     // Assuming there's a download endpoint
     window.open(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/purchase/${purchaseId}/download`, '_blank');
@@ -130,9 +200,19 @@ const MyPurchases: React.FC = () => {
           <Typography variant="h4" sx={{ fontWeight: 600 }}>
             My Purchased Policies
           </Typography>
-          <Button variant="outlined" onClick={() => navigate('/policies')}>
-            Browse More Policies
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button 
+              variant="outlined" 
+              color="secondary"
+              startIcon={<AddIcon />}
+              onClick={() => setShowTestDialog(true)}
+            >
+              Create Test Purchase (Renewal Testing)
+            </Button>
+            <Button variant="outlined" onClick={() => navigate('/policies')}>
+              Browse More Policies
+            </Button>
+          </Box>
         </Box>
 
         {error && (
@@ -168,12 +248,29 @@ const MyPurchases: React.FC = () => {
                         {purchase.policyId.insurer} • {purchase.policyId.type}
                       </Typography>
                     </Box>
-                    <Chip
-                      icon={getStatusIcon(purchase.status) || undefined}
-                      label={purchase.status.toUpperCase()}
-                      color={getStatusColor(purchase.status)}
-                      size="small"
-                    />
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Chip
+                        icon={getStatusIcon(purchase.status) || undefined}
+                        label={purchase.status.toUpperCase()}
+                        color={getStatusColor(purchase.status)}
+                        size="small"
+                      />
+                      {isEligibleForRenewal(purchase) && (
+                        <Chip
+                          label="Renewal Available"
+                          color="warning"
+                          size="small"
+                          sx={{ fontWeight: 600 }}
+                        />
+                      )}
+                      {purchase.renewalStatus === 'renewed' && (
+                        <Chip
+                          label="Renewed"
+                          color="success"
+                          size="small"
+                        />
+                      )}
+                    </Box>
                   </Box>
 
                   <Box sx={{ 
@@ -222,6 +319,27 @@ const MyPurchases: React.FC = () => {
                         {formatDate(purchase.startDate)} - {formatDate(purchase.endDate)}
                       </Typography>
                     </Box>
+                    {purchase.expiryDate && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Expiry Date
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 600,
+                            color: isEligibleForRenewal(purchase) ? 'warning.main' : 'text.primary'
+                          }}
+                        >
+                          {formatDate(purchase.expiryDate)}
+                          {isEligibleForRenewal(purchase) && (
+                            <Typography variant="caption" display="block" color="warning.main">
+                              ({calculateDaysUntilExpiry(purchase.expiryDate)} days left)
+                            </Typography>
+                          )}
+                        </Typography>
+                      </Box>
+                    )}
                     <Box>
                       <Typography variant="caption" color="text.secondary">
                         Payment Method
@@ -249,6 +367,20 @@ const MyPurchases: React.FC = () => {
                     
                     {purchase.status === 'success' && (
                       <>
+                        {isEligibleForRenewal(purchase) && (
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="warning"
+                            onClick={() => {
+                              console.log('Navigating to renewal with purchaseId:', purchase._id);
+                              navigate(`/renewals/${purchase._id}`);
+                            }}
+                            sx={{ fontWeight: 600 }}
+                          >
+                            Renew Policy
+                          </Button>
+                        )}
                         <Button
                           variant="contained"
                           size="small"
@@ -285,6 +417,60 @@ const MyPurchases: React.FC = () => {
             ))}
           </Box>
         )}
+
+        {/* Test Purchase Dialog */}
+        <Dialog open={showTestDialog} onClose={() => setShowTestDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Create Test Purchase for Renewal Testing</DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Alert severity="info">
+                This creates a test purchase with a custom expiry date for testing the renewal feature.
+                The purchase will be marked as "success" immediately.
+              </Alert>
+
+              <FormControl fullWidth>
+                <InputLabel>Select Policy</InputLabel>
+                <Select
+                  value={testPolicyId}
+                  onChange={(e) => setTestPolicyId(e.target.value)}
+                  label="Select Policy"
+                >
+                  {policies.map((policy) => (
+                    <MenuItem key={policy._id} value={policy._id}>
+                      {policy.name} - {policy.type} (₹{policy.premium})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                fullWidth
+                type="number"
+                label="Days Until Expiry"
+                value={testDaysUntilExpiry}
+                onChange={(e) => setTestDaysUntilExpiry(parseInt(e.target.value) || 5)}
+                helperText="Set to 5 or less to make it eligible for renewal (7-day window)"
+                inputProps={{ min: 1, max: 365 }}
+              />
+
+              {error && (
+                <Alert severity="error" onClose={() => setError(null)}>
+                  {error}
+                </Alert>
+              )}
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowTestDialog(false)}>Cancel</Button>
+            <Button 
+              onClick={handleCreateTestPurchase} 
+              variant="contained"
+              disabled={creatingTest || !testPolicyId}
+            >
+              {creatingTest ? 'Creating...' : 'Create Test Purchase'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </Box>
   );

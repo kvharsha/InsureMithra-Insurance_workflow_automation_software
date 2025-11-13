@@ -170,6 +170,10 @@ export const purchaseAPI = {
     // returns blob
     const response = await api.get(`/purchase/${purchaseId}/download`, { responseType: 'blob' });
     return response.data;
+  },
+  createTestPurchase: async (policyId: string, daysUntilExpiry: number = 5) => {
+    const response = await api.post('/purchase/create-test-purchase', { policyId, daysUntilExpiry });
+    return response.data;
   }
 };
 
@@ -197,6 +201,25 @@ export const claimAPI = {
   },
   adminUpdateStatus: async (claimId: string, status: string, note?: string) => {
     const response = await api.put(`/claims/${claimId}/status`, { status, note });
+    return response.data;
+  }
+};
+
+export const renewalAPI = {
+  checkEligibility: async (purchaseId: string) => {
+    const response = await api.get(`/renewals/eligibility/${purchaseId}`);
+    return response.data;
+  },
+  initiateRenewal: async (purchaseId: string, paymentMethod: string) => {
+    const response = await api.post('/renewals/initiate', { purchaseId, paymentMethod });
+    return response.data;
+  },
+  getRenewalStatus: async (renewalId: string) => {
+    const response = await api.get(`/renewals/${renewalId}`);
+    return response.data;
+  },
+  getMyRenewals: async (page: number = 1, limit: number = 10) => {
+    const response = await api.get('/renewals/my', { params: { page, limit } });
     return response.data;
   }
 };

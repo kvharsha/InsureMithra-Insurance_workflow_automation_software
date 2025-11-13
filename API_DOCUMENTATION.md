@@ -528,8 +528,317 @@ Authentication endpoints are rate-limited:
 
 This authentication module provides the foundation for:
 
+
 1. **Epic 2 - Policy Management**: User authentication required for policy search, comparison, and purchase
 2. **Epic 3 - Claims Processing**: Authenticated users can file and track claims
 3. **Epic 4 - Monitoring & Analytics**: Admin users can access monitoring dashboards
 
 The JWT tokens and user roles established here will be used across all subsequent modules.
+
+---
+
+## Policy Renewal Endpoints (Epic 3 Story 3)
+
+### 1. Check Renewal Eligibility
+**GET** `/renewals/eligibility/:purchaseId`
+
+Check if a policy purchase is eligible for renewal. Policies are eligible for renewal within 7 days before expiry.
+
+**Authentication:** Required
+
+**URL Parameters:**
+- `purchaseId` (string): The ID of the policy purchase
+
+**Response (200 OK):**
+```json
+{
+  "eligible": true,
+  "purchaseId": "507f1f77bcf86cd799439011",
+  "policyName": "Comprehensive Car Insurance",
+  "policyType": "4W",
+  "expiryDate": "2025-12-01T00:00:00.000Z",
+  "daysLeft": 5,
+  "renewalAmount": 15000,
+  "currency": "INR",
+  "renewalWindowDays": 7,
+  "message": "Your policy is eligible for renewal"
+}
+```
+
+**Response (200 OK - Not Eligible):**
+```json
+{
+  "eligible": false,
+  "purchaseId": "507f1f77bcf86cd799439011",
+  "policyName": "Comprehensive Car Insurance",
+  "policyType": "4W",
+  "expiryDate": "2025-12-20T00:00:00.000Z",
+  "daysLeft": 15,
+  "renewalAmount": 15000,
+  "currency": "INR",
+  "renewalWindowDays": 7,
+  "message": "Renewal will be available 7 days before expiry"
+}
+```
+
+**Error Responses:**
+- `404`: Purchase not found
+- `403`: Unauthorized (purchase belongs to another user)
+- `400`: Purchase does not have an expiry date set
+
+---
+
+### 2. Initiate Renewal
+**POST** `/renewals/initiate`
+
+Initiate the renewal process for an eligible policy. This starts the payment processing flow.
+
+**Authentication:** Required
+
+**Request Body:**
+```json
+{
+  "purchaseId": "507f1f77bcf86cd799439011",
+  "paymentMethod": "card"
+}
+```
+
+**Parameters:**
+- `purchaseId` (string, required): ID of the policy purchase to renew
+- `paymentMethod` (string, required): Payment method - `card`, `upi`, `netbanking`, `wallet`
+
+**Response (202 Accepted):**
+```json
+{
+  "success": true,
+  "message": "Renewal initiated. Processing payment...",
+  "renewalId": "507f1f77bcf86cd799439022",
+  "transactionId": "REN-1699875123456-A1B2C3D4",
+  "status": "processing"
+}
+```
+
+**Notes:**
+- Payment is processed asynchronously
+- Poll the renewal status endpoint or wait for email notification
+- In sandbox mode, payment typically completes within 1-3 seconds
+
+**Error Responses:**
+- `400`: Missing required fields, not eligible, or renewal already in progress
+- `403`: Unauthorized
+- `404`: Purchase not found
+
+---
+
+### 3. Get Renewal Status
+**GET** `/renewals/:renewalId`
+
+Get the current status and details of a renewal transaction.
+
+**Authentication:** Required
+
+**URL Parameters:**
+- `renewalId` (string): The ID of the renewal transaction
+
+**Response (200 OK - Success):**
+```json
+{
+  "renewal": {
+    "id": "507f1f77bcf86cd799439022",
+    "transactionId": "REN-1699875123456-A1B2C3D4",
+    "status": "success",
+    "amount": 15000,
+    "currency": "INR",
+    "paymentMethod": "card",
+    "oldExpiryDate": "2025-12-01T00:00:00.000Z",
+    "newExpiryDate": "2026-12-01T00:00:00.000Z",
+    "createdAt": "2025-11-25T10:30:00.000Z",
+    "completedAt": "2025-11-25T10:30:03.500Z",
+    "errorMessage": null
+  },
+  "purchase": {
+    "id": "507f1f77bcf86cd799439011",
+    "policyNumber": "POL-12345",
+    "policyName": "Comprehensive Car Insurance"
+  }
+}
+```
+
+**Response (200 OK - Failed):**
+```json
+{
+  "renewal": {
+    "id": "507f1f77bcf86cd799439022",
+    "transactionId": "REN-1699875123456-A1B2C3D4",
+    "status": "failed",
+    "amount": 15000,
+    "currency": "INR",
+    "paymentMethod": "card",
+    "oldExpiryDate": "2025-12-01T00:00:00.000Z",
+    "newExpiryDate": null,
+    "createdAt": "2025-11-25T10:30:00.000Z",
+    "completedAt": "2025-11-25T10:30:02.800Z",
+    "errorMessage": "Payment declined by gateway"
+  },
+  "purchase": {
+    "id": "507f1f77bcf86cd799439011",
+    "policyNumber": "POL-12345",
+    "policyName": "Comprehensive Car Insurance"
+  }
+}
+```
+
+**Error Responses:**
+- `403`: Unauthorized (renewal belongs to another user)
+- `404`: Renewal not found
+
+---
+
+### 4. Get My Renewals
+**GET** `/renewals/my`
+
+Get the authenticated user's renewal history with pagination.
+
+**Authentication:** Required
+
+**Query Parameters:**
+- `page` (number, optional): Page number (default: 1)
+- `limit` (number, optional): Items per page (default: 10)
+
+**Response (200 OK):**
+```json
+{
+  "renewals": [
+    {
+      "id": "507f1f77bcf86cd799439022",
+      "transactionId": "REN-1699875123456-A1B2C3D4",
+      "status": "success",
+      "amount": 15000,
+      "currency": "INR",
+      "policyName": "Comprehensive Car Insurance",
+      "policyType": "4W",
+      "oldExpiryDate": "2025-12-01T00:00:00.000Z",
+      "newExpiryDate": "2026-12-01T00:00:00.000Z",
+      "createdAt": "2025-11-25T10:30:00.000Z",
+      "completedAt": "2025-11-25T10:30:03.500Z"
+    },
+    {
+      "id": "507f1f77bcf86cd799439023",
+      "transactionId": "REN-1698765432100-X9Y8Z7W6",
+      "status": "failed",
+      "amount": 12000,
+      "currency": "INR",
+      "policyName": "Health Insurance Plan",
+      "policyType": "Health",
+      "oldExpiryDate": "2025-06-15T00:00:00.000Z",
+      "newExpiryDate": null,
+      "createdAt": "2025-06-08T15:20:00.000Z",
+      "completedAt": "2025-06-08T15:20:02.100Z"
+    }
+  ],
+  "pagination": {
+    "total": 2,
+    "page": 1,
+    "pages": 1
+  }
+}
+```
+
+---
+
+## Renewal Configuration
+
+### Environment Variables
+
+Add these to your `.env` file:
+
+```env
+# Renewal Configuration
+RENEWAL_WINDOW_DAYS=7
+
+# Payment Gateway Configuration
+PAYMENT_GATEWAY_MODE=sandbox
+SANDBOX_MIN_MS=1000
+SANDBOX_MAX_MS=3000
+PAYMENT_PROVIDER_API_KEY=your_payment_provider_api_key_here
+```
+
+**Configuration Details:**
+- `RENEWAL_WINDOW_DAYS`: Number of days before expiry when renewal becomes available (default: 7)
+- `PAYMENT_GATEWAY_MODE`: `sandbox` for development/testing, `live` for production
+- `SANDBOX_MIN_MS/MAX_MS`: Simulated payment processing delay range in milliseconds
+- `PAYMENT_PROVIDER_API_KEY`: API key for live payment gateway (not used in sandbox mode)
+
+### Postman Collection Example
+
+**Check Eligibility:**
+```bash
+curl -X GET \
+  http://localhost:5001/api/renewals/eligibility/507f1f77bcf86cd799439011 \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+**Initiate Renewal:**
+```bash
+curl -X POST \
+  http://localhost:5001/api/renewals/initiate \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "purchaseId": "507f1f77bcf86cd799439011",
+    "paymentMethod": "card"
+  }'
+```
+
+**Get Renewal Status:**
+```bash
+curl -X GET \
+  http://localhost:5001/api/renewals/507f1f77bcf86cd799439022 \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+**Get My Renewals:**
+```bash
+curl -X GET \
+  'http://localhost:5001/api/renewals/my?page=1&limit=10' \
+  -H 'Authorization: Bearer YOUR_JWT_TOKEN'
+```
+
+---
+
+## Renewal Flow
+
+1. **User checks eligibility** → GET `/renewals/eligibility/:purchaseId`
+2. **If eligible, initiates renewal** → POST `/renewals/initiate`
+3. **Payment processed asynchronously** (1-3 seconds in sandbox)
+4. **User polls status** → GET `/renewals/:renewalId` or receives email notification
+5. **On success:** Policy expiry date is updated, user receives confirmation email
+6. **On failure:** User receives failure email with retry instructions
+
+---
+
+## Email Notifications
+
+### Renewal Success Email
+- Sent automatically when payment succeeds
+- Includes: Transaction ID, amount paid, new expiry date, policy details
+- Template: `templates/renewalSuccess.html`
+
+### Renewal Failure Email
+- Sent automatically when payment fails
+- Includes: Transaction ID, error reason, retry instructions
+- Template: `templates/renewalFailure.html`
+
+---
+
+## Logging
+
+All renewal events are logged to `logs/renewals.log` in JSON format:
+
+```json
+{"event":"RENEWAL_SUCCESS","transactionId":"REN-1699875123456-A1B2C3D4","purchaseId":"507f1f77bcf86cd799439011","userId":"507f1f77bcf86cd799439001","amount":15000,"oldExpiry":"2025-12-01T00:00:00.000Z","newExpiry":"2026-12-01T00:00:00.000Z","timestamp":"2025-11-25T10:30:03.500Z"}
+{"event":"RENEWAL_FAILED","transactionId":"REN-1699875123456-A1B2C3D4","purchaseId":"507f1f77bcf86cd799439011","userId":"507f1f77bcf86cd799439001","amount":15000,"error":"Payment declined by gateway","timestamp":"2025-11-25T10:30:02.800Z"}
+```
+
+---
+
