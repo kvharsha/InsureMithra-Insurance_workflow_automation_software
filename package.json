@@ -9,7 +9,14 @@
     "server": "node server.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:renewal": "jest tests/renewal.test.js --coverage --collectCoverageFrom='controllers/renewal.controller.js' --collectCoverageFrom='routes/renewal.routes.js' --collectCoverageFrom='models/renewal.model.js' --collectCoverageFrom='services/payment.service.js' --collectCoverageFrom='utils/renewalCalculator.js' --collectCoverageFrom='utils/transactionId.js'"
+    "test:ci": "node -e \"require('fs').mkdirSync('reports/junit', { recursive: true })\" && jest --runInBand --forceExit --reporters=default --reporters=jest-junit",
+    "test:backend": "jest --testPathPattern=tests --runInBand --config=jest.config.cjs",
+    "test:renewal": "jest tests/renewal.test.js --coverage --collectCoverageFrom='controllers/renewal.controller.js' --collectCoverageFrom='routes/renewal.routes.js' --collectCoverageFrom='models/renewal.model.js' --collectCoverageFrom='services/payment.service.js' --collectCoverageFrom='utils/renewalCalculator.js' --collectCoverageFrom='utils/transactionId.js'",
+    "coverage:backend": "jest --coverage --coverageDirectory=coverage --coverageReporters=json-summary --coverageReporters=lcov --testPathPattern=tests --config=jest.config.cjs",
+    "lint": "eslint . --ext .js",
+    "lint:ci": "node scripts/save-eslint-report.js",
+    "security:audit": "npm audit --audit-level=high",
+    "prepare": "husky install"
   },
   "keywords": [
     "insurance",

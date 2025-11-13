@@ -16,7 +16,13 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Ensure headers object exists (TS: headers may be undefined on the config type)
+      if (!config.headers) {
+        // eslint-disable-next-line no-param-reassign
+        config.headers = {} as any;
+      }
+      // assign Authorization header
+      (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -57,7 +63,7 @@ export const authAPI = {
   },
 
   getMe: async (token?: string) => {
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
     const response = await api.get('/auth/me', { headers });
     return response.data;
   },
