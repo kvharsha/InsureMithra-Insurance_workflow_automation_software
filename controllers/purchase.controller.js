@@ -4,6 +4,7 @@ const User = require('../models/user.model');
 const generateTransactionId = require('../utils/generateTransactionId');
 const generatePolicyPDF = require('../utils/generatePolicyPDF');
 const { logger } = require('../config/logger');
+const { calculateNewExpiry } = require('../utils/renewalCalculator');
 
 // POST /api/purchase/initiate
 // Body: { policyId }
@@ -60,6 +61,11 @@ const completePurchase = async (req, res) => {
     purchase.policyNumber = `POL${Date.now()}`;
     purchase.status = 'success';
 
+    // Calculate expiry date based on policy tenure
+    const startDate = new Date();
+    purchase.expiryDate = calculateNewExpiry(startDate, policy.tenure || '1 year');
+    purchase.renewalStatus = 'active';
+
     // Generate PDF
     try {
       const pdfPath = await generatePolicyPDF({ purchase, user, policy });
@@ -113,8 +119,10 @@ const downloadPDF = async (req, res) => {
 // Simulate asynchronous processing with random delay 10-30s, fail if >120s from creation
 async function simulateProcessing(purchaseId) {
   try {
-    const purchase = await Purchase.findById(purchaseId);
+    const purchase = await Purchase.findById(purchaseId).populate('policyId');
     if (!purchase) return;
+
+    const policy = purchase.policyId; // Get policy reference
 
     // random delay
     const delay = 10000 + Math.floor(Math.random() * 20000); // 10-30s
@@ -139,7 +147,11 @@ async function simulateProcessing(purchaseId) {
       purchase.policyNumber = `POL${Date.now()}`;
       purchase.status = 'success';
 
-      const policy = await Policy.findById(purchase.policyId);
+      // Calculate expiry date based on policy tenure
+      const startDate = new Date();
+      purchase.expiryDate = calculateNewExpiry(startDate, policy.tenure || '1 year');
+      purchase.renewalStatus = 'active';
+
       const user = await User.findById(purchase.userId);
       try {
         const pdfPath = await generatePolicyPDF({ purchase, user, policy });
@@ -179,4 +191,65 @@ const getUserPurchases = async (req, res) => {
   }
 };
 
-module.exports = { initiatePurchase, completePurchase, getPurchase, downloadPDF, getUserPurchases };
+/**
+ * POST /api/purchase/create-test-purchase
+ * Create a test purchase with expiry date within 7 days (for testing renewal feature)
+ * Body: { policyId, daysUntilExpiry }
+ */
+const createTestPurchase = async (req, res) => {
+  try {
+    const userId = req.user && req.user._id;
+    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+    const { policyId, daysUntilExpiry = 5 } = req.body;
+    if (!policyId) return res.status(400).json({ success: false, message: 'policyId is required' });
+
+    const policy = await Policy.findById(policyId);
+    if (!policy) return res.status(404).json({ success: false, message: 'Policy not found' });
+
+    // Create a purchase that's already successful
+    const transactionId = generateTransactionId('TX_TEST_');
+    const policyNumber = `POL_TEST_${Date.now()}`;
+    
+    // Calculate expiry date
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + parseInt(daysUntilExpiry));
+
+    const purchase = new Purchase({
+      userId,
+      policyId,
+      transactionId,
+      policyNumber,
+      status: 'success',
+      amount: policy.premium,
+      currency: 'INR',
+      expiryDate,
+      renewalStatus: 'active',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    await purchase.save();
+
+    const populatedPurchase = await Purchase.findById(purchase._id)
+      .populate('policyId', 'name type insurer premium model coverage tenure');
+
+    return res.status(201).json({
+      success: true,
+      message: `Test purchase created with expiry in ${daysUntilExpiry} days`,
+      data: populatedPurchase
+    });
+  } catch (err) {
+    logger.error('Error creating test purchase:', err);
+    return res.status(500).json({ success: false, message: 'Error creating test purchase', error: err.message });
+  }
+};
+
+module.exports = { 
+  initiatePurchase, 
+  completePurchase, 
+  getPurchase, 
+  downloadPDF, 
+  getUserPurchases,
+  createTestPurchase 
+};

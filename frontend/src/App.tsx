@@ -20,6 +20,7 @@ import MyPurchases from './pages/MyPurchases';
 import ClaimSubmit from './pages/ClaimSubmit';
 import MyClaims from './pages/MyClaims';
 import ClaimStatus from './pages/ClaimStatus';
+import PolicyRenewal from './pages/PolicyRenewal';
 import './App.css';
 
 // Create a beautiful, professional theme
@@ -112,7 +113,7 @@ function App() {
               <Route path="/reset-password/:token" element={<ResetPassword />} />
               
               {/* Protected routes */}
-              <Route path="/dashboard" element={
+              <Route path="/login" element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
@@ -157,6 +158,11 @@ function App() {
                   <ClaimStatus />
                 </ProtectedRoute>
               } />
+              <Route path="/renewals/:purchaseId" element={
+                <ProtectedRoute>
+                  <PolicyRenewal />
+                </ProtectedRoute>
+              } />
               {/* New public policies browser page (supports advanced filters) */}
               <Route path="/policies" element={<Policies />} />
               <Route path="/policies/:id/details" element={<PolicyDetails />} />
@@ -167,7 +173,7 @@ function App() {
               } />
               
               {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
             </Routes>
           </div>
         </Router>

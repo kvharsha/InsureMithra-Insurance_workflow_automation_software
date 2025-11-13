@@ -4,6 +4,7 @@ import { Box, Container, Typography, Button, CircularProgress, Card, CardContent
 import { policyAPI, purchaseAPI } from '../services/api';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 
 const PolicyPurchase: React.FC = () => {
   const { policyId } = useParams();

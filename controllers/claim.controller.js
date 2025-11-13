@@ -282,7 +282,8 @@ const updateClaimStatus = async (req, res) => {
     const claim = await Claim.findOne({ claimId: id });
     if (!claim) return res.status(404).json({ success: false, message: 'Claim not found' });
 
-  claim.status = status;
+    const _previous = claim.status; // Store previous status (prefixed with _ to indicate unused)
+    claim.status = status;
     claim.history = claim.history || [];
     claim.history.push({ status, updatedAt: new Date(), note: note || '', updatedBy: user._id });
     claim.lastUpdatedBy = user._id;

@@ -67,6 +67,7 @@ const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
 const claimRoutes = require('./routes/claim.routes');
+const renewalRoutes = require('./routes/renewal.routes');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -74,6 +75,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/policies', policyRoutes);
 app.use('/api/purchase', purchaseRoutes);
 app.use('/api/claims', claimRoutes);
+app.use('/api/renewals', renewalRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -128,6 +130,8 @@ app.listen(PORT, () => {
   console.log(`👤 Profile endpoints: http://localhost:${PORT}/api/profile/*`);
   console.log(`📄 Policy endpoints: http://localhost:${PORT}/api/policies/*`);
   console.log(`💳 Purchase endpoints: http://localhost:${PORT}/api/purchase/*`);
+  console.log(`🔄 Renewal endpoints: http://localhost:${PORT}/api/renewals/*`);
+  console.log(`📋 Claim endpoints: http://localhost:${PORT}/api/claims/*`);
 });
 
 module.exports = app;
