@@ -257,81 +257,83 @@ jobs:
             reports/trufflehog.txt
           if-no-files-found: ignore
 
-  deploy:
-    name: Create deployment artifact (.zip)
-    needs: security
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  # CD (Continuous Deployment) - Commented out for now, focusing on CI only
+  # deploy:
+  #   name: Create deployment artifact (.zip)
+  #   needs: security
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Download CI artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
+  #     - name: Download CI artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         path: artifacts/
 
-      - name: Setup Node for frontend
-        if: hashFiles('frontend/package.json') != ''
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+  #     - name: Setup Node for frontend
+  #       if: hashFiles('frontend/package.json') != ''
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "20"
 
-      - name: Build production assets (frontend)
-        if: hashFiles('frontend/package.json') != ''
-        run: |
-          cd frontend
-          rm -rf node_modules
-          npm cache clean --force || true
-          npm ci || npm install
-          npm run build
-          cd ..
+  #     - name: Build production assets (frontend)
+  #       if: hashFiles('frontend/package.json') != ''
+  #       run: |
+  #         cd frontend
+  #         rm -rf node_modules
+  #         npm cache clean --force || true
+  #         npm ci || npm install
+  #         npm run build
+  #         cd ..
 
-      - name: Assemble deployment directory
-        shell: bash
-        run: |
-          set -e
-          mkdir -p deployment/reports
-          rsync -a --exclude 'node_modules' --exclude '.git' ./ deployment/src/
-          if [ -d "frontend/build" ]; then
-            rsync -a frontend/build/ deployment/src/frontend_build/
-          fi
-          rsync -a artifacts/ deployment/reports/
-          cp -f README.md deployment/
-          [ -f package.json ] && cp -f package.json deployment/
-          [ -f requirements.txt ] && cp -f requirements.txt deployment/
-          [ -d docs ] && rsync -a docs/ deployment/docs/
+  #     - name: Assemble deployment directory
+  #       shell: bash
+  #       run: |
+  #         set -e
+  #         mkdir -p deployment/reports
+  #         rsync -a --exclude 'node_modules' --exclude '.git' ./ deployment/src/
+  #         if [ -d "frontend/build" ]; then
+  #           rsync -a frontend/build/ deployment/src/frontend_build/
+  #         fi
+  #         rsync -a artifacts/ deployment/reports/
+  #         cp -f README.md deployment/
+  #         [ -f package.json ] && cp -f package.json deployment/
+  #         [ -f requirements.txt ] && cp -f requirements.txt deployment/
+  #         [ -d docs ] && rsync -a docs/ deployment/docs/
 
-      - name: Zip deployment package
-        run: |
-          cd deployment
-          zip -r ../deployment-package-$(date +%Y%m%d).zip .
-          cd ..
-          ls -lh deployment-package-*.zip
+  #     - name: Zip deployment package
+  #       run: |
+  #         cd deployment
+  #         zip -r ../deployment-package-$(date +%Y%m%d).zip .
+  #         cd ..
+  #         ls -lh deployment-package-*.zip
 
-      - name: Upload deployment artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: deployment-package
-          path: deployment-package-*.zip
-          retention-days: 30
+  #     - name: Upload deployment artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: deployment-package
+  #         path: deployment-package-*.zip
+  #         retention-days: 30
 
-  verify_artifact:
-    name: Verify artifact contents
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download deployment artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-package
-          path: .
-      - name: Inspect zip
-        run: |
-          unzip -l deployment-package-*.zip | tee zip-contents.txt
-          unzip -q deployment-package-*.zip -d extracted
-          test -d extracted/src || (echo "source missing" && exit 1)
-          test -f extracted/README.md || (echo "README missing" && exit 1)
-          test -d extracted/reports || (echo "reports folder missing" && exit 1)
-          (ls extracted/reports/*/coverage* >/dev/null 2>&1 || ls extracted/reports/**/coverage* >/dev/null 2>&1) || echo "coverage report not found"
-          (ls extracted/reports/*/eslint* >/dev/null 2>&1 || ls extracted/reports/**/eslint* >/dev/null 2>&1) || echo "eslint report not found"
-          (ls extracted/reports/*/npm-audit.json >/dev/null 2>&1 || true)
-          echo "artifact structure OK"
+  # verify_artifact:
+  #   name: Verify artifact contents
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Download deployment artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: deployment-package
+  #         path: .
+  #     - name: Inspect zip
+  #       run: |
+  #         unzip -l deployment-package-*.zip | tee zip-contents.txt
+  #         unzip -q deployment-package-*.zip -d extracted
+  #         test -d extracted/src || (echo "source missing" && exit 1)
+  #         test -f extracted/README.md || (echo "README missing" && exit 1)
+  #         test -d extracted/reports || (echo "reports folder missing" && exit 1)
+  #         (ls extracted/reports/*/coverage* >/dev/null 2>&1 || ls extracted/reports/**/coverage* >/dev/null 2>&1) || echo "coverage report not found"
+  #         (ls extracted/reports/*/eslint* >/dev/null 2>&1 || ls extracted/reports/**/eslint* >/dev/null 2>&1) || echo "eslint report not found"
+  #         (ls extracted/reports/*/npm-audit.json >/dev/null 2>&1 || true)
+  #         echo "artifact structure OK"
+
