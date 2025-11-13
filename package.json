@@ -15,8 +15,7 @@
     "coverage:backend": "jest --coverage --coverageDirectory=coverage --coverageReporters=json-summary --coverageReporters=lcov --testPathPattern=tests --config=jest.config.cjs",
     "lint": "eslint . --ext .js",
     "lint:ci": "node scripts/save-eslint-report.js",
-    "security:audit": "npm audit --audit-level=high",
-    "prepare": "husky install"
+    "security:audit": "npm audit --audit-level=high"
   },
   "keywords": [
     "insurance",
