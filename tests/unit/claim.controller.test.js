@@ -11,12 +11,12 @@ jest.mock('../../models/claim.model', () => {
 jest.mock('../../models/user.model', () => ({ findById: jest.fn() }));
 jest.mock('../../utils/claimIdGenerator', () => jest.fn(() => 'CLM-TEST-1234'));
 jest.mock('../../services/storage.service', () => ({ storeClaimDocuments: jest.fn() }));
-jest.mock('../../utils/claimStatusNotifier', () => ({ sendClaimStatusEmail: jest.fn() }));
 
 const Purchase = require('../../models/purchase.model');
 const Claim = require('../../models/claim.model');
+jest.mock('../../utils/claimStatusNotifier', () => ({ sendClaimStatusEmail: jest.fn() }));
+
 const storageService = require('../../services/storage.service');
-const { sendClaimStatusEmail } = require('../../utils/claimStatusNotifier');
 
 function mockRes() {
   const res = {};

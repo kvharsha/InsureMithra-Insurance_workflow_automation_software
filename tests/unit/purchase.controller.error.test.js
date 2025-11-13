@@ -30,7 +30,7 @@ describe('purchase.controller error and pdf paths', () => {
     Policy.findById.mockResolvedValue({ _id: 'P1', premium: 100 });
     // Purchase constructor that has save which rejects
     const saveMock = jest.fn().mockRejectedValue(new Error('save failed'));
-    Purchase.mockImplementation(function (obj) { this._id = 'X'; this.save = saveMock; });
+  Purchase.mockImplementation(function (_obj) { this._id = 'X'; this.save = saveMock; });
 
     const req = { user: { _id: 'U1' }, body: { policyId: 'P1' } };
     const res = mockRes();

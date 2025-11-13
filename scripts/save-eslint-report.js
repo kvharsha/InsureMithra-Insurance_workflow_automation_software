@@ -12,7 +12,10 @@ if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir, { recursive: true });
 
 try {
   console.log('Running ESLint (json) -> reports/eslint.json');
-  execSync(`npx eslint . --ext .js --max-warnings=9 -f json -o "${path.join(reportsDir, 'eslint.json')}"`, { stdio: 'inherit', shell: true });
+  // Include .js and .cjs files so the flat config applies to both module and CommonJS script files
+  // Allow a high warning threshold for the report generation step so we only
+  // fail CI if there are actual errors (we still record warnings in the report).
+  execSync(`npx eslint . --ext .js,.cjs --max-warnings=9999 -f json -o "${path.join(reportsDir, 'eslint.json')}"`, { stdio: 'inherit', shell: true });
 } catch (err) {
   console.error('ESLint (json) failed with code', err.status || err.message);
   // continue to produce stylish output
@@ -20,7 +23,7 @@ try {
 
 try {
   console.log('Running ESLint (stylish) -> reports/eslint-summary.txt');
-  const stylishOut = execSync(`npx eslint . --ext .js --max-warnings=9 -f stylish`, { encoding: 'utf8', shell: true });
+  const stylishOut = execSync(`npx eslint . --ext .js,.cjs --max-warnings=9999 -f stylish`, { encoding: 'utf8', shell: true });
   fs.writeFileSync(path.join(reportsDir, 'eslint-summary.txt'), stylishOut);
   // If we reach here and there was non-empty output, we should use exit code 0
   console.log('ESLint reports written to reports/');

@@ -3,8 +3,8 @@ describe('upload fileFilter via multer options capture', () => {
 
   test('fileFilter rejects invalid mimetype and accepts valid', () => {
     // ensure any previously-loaded multer or upload modules are removed so our mock takes effect
-    try { delete require.cache[require.resolve('multer')]; } catch (e) { /* ignore */ }
-    try { delete require.cache[require.resolve('../../middleware/upload')]; } catch (e) { /* ignore */ }
+  try { delete require.cache[require.resolve('multer')]; } catch { /* ignore */ }
+  try { delete require.cache[require.resolve('../../middleware/upload')]; } catch { /* ignore */ }
 
     // mock multer to capture options and provide diskStorage
     const mockDiskStorage = jest.fn((cfg) => ({ _diskCfg: cfg }));

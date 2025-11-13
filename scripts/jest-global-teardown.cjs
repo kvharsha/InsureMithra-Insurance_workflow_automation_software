@@ -1,3 +1,4 @@
+/* eslint-env node,jest */
 const fs = require('fs');
 const path = require('path');
 
@@ -29,7 +30,7 @@ module.exports = async () => {
           console.warn('globalTeardown: failed to kill pid', info.pid, e && e.message);
         }
       }
-      try { fs.unlinkSync(infoPath); } catch (_) {}
+  try { fs.unlinkSync(infoPath); } catch (err) { void err; }
     }
   } catch (e) {
     console.error('globalTeardown error:', e && e.message);
