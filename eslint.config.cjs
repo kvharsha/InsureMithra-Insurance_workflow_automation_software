@@ -29,6 +29,7 @@ module.exports = [
   require: 'readonly',
   module: 'readonly',
   setTimeout: 'readonly',
+  setImmediate: 'readonly',
         // Jest globals
         describe: 'readonly',
         it: 'readonly',

@@ -435,7 +435,7 @@ const sendRenewalSuccessEmail = async (renewal, purchase, newExpiryDate) => {
     let html;
     try {
       html = await fs.readFile(templatePath, 'utf8');
-    } catch (err) {
+    } catch (_err) {
       // Fallback to simple text if template doesn't exist
       html = `
         <h2>Policy Renewal Successful</h2>
@@ -481,7 +481,7 @@ const sendRenewalFailureEmail = async (renewal, purchase) => {
     let html;
     try {
       html = await fs.readFile(templatePath, 'utf8');
-    } catch (err) {
+    } catch (_err) {
       // Fallback to simple text if template doesn't exist
       html = `
         <h2>Policy Renewal Failed</h2>

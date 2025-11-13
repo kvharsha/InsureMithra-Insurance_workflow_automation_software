@@ -119,8 +119,10 @@ const downloadPDF = async (req, res) => {
 // Simulate asynchronous processing with random delay 10-30s, fail if >120s from creation
 async function simulateProcessing(purchaseId) {
   try {
-    const purchase = await Purchase.findById(purchaseId);
+    const purchase = await Purchase.findById(purchaseId).populate('policyId');
     if (!purchase) return;
+
+    const policy = purchase.policyId; // Get policy reference
 
     // random delay
     const delay = 10000 + Math.floor(Math.random() * 20000); // 10-30s

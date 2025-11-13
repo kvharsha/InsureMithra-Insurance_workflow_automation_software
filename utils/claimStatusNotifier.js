@@ -15,7 +15,7 @@ function renderTemplate(claimId, status, date) {
     html = html.replace(/\$\{status\}/g, status);
     html = html.replace(/\$\{date\}/g, date);
     return html;
-  } catch (err) {
+  } catch (_err) {
     return `<p>Your claim <strong>${claimId}</strong> status has changed to <strong>${status}</strong> on ${date}.</p>`;
   }
 }
@@ -27,8 +27,8 @@ async function sendClaimStatusEmail(userEmail, claimId, newStatus) {
   try {
     await sendEmail({ to: userEmail, subject, html });
     return true;
-  } catch (err) {
-    console.error('Failed to send claim status email', err);
+  } catch (_err) {
+    console.error('Failed to send claim status email', _err);
     return false;
   }
 }
