@@ -17,59 +17,6 @@ const { authenticate, requireAdmin, validateTokenFormat } = require('../middlewa
 const router = express.Router();
 
 // Validation rules
-const updateProfileValidation = [
-  body('firstName')
-    .optional()
-    .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('First name must be between 2 and 50 characters'),
-  
-  body('lastName')
-    .optional()
-    .trim()
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Last name must be between 2 and 50 characters'),
-  
-  body('phone')
-    .optional()
-    .isMobilePhone()
-    .withMessage('Please provide a valid phone number'),
-  
-  body('dateOfBirth')
-    .optional()
-    .isISO8601()
-    .withMessage('Please provide a valid date of birth'),
-  
-  body('address.street')
-    .optional()
-    .trim()
-    .isLength({ max: 100 })
-    .withMessage('Street address cannot exceed 100 characters'),
-  
-  body('address.city')
-    .optional()
-    .trim()
-    .isLength({ max: 50 })
-    .withMessage('City cannot exceed 50 characters'),
-  
-  body('address.state')
-    .optional()
-    .trim()
-    .isLength({ max: 50 })
-    .withMessage('State cannot exceed 50 characters'),
-  
-  body('address.zipCode')
-    .optional()
-    .trim()
-    .isLength({ max: 10 })
-    .withMessage('ZIP code cannot exceed 10 characters'),
-  
-  body('address.country')
-    .optional()
-    .trim()
-    .isLength({ max: 50 })
-    .withMessage('Country cannot exceed 50 characters')
-];
 
 const changePasswordValidation = [
   body('currentPassword')
@@ -116,8 +63,8 @@ router.put('/', updateProfile); // Removed validation middleware
 router.post('/change-password', changePasswordValidation, handleValidationErrors, changePassword);
 router.post('/deactivate', deactivateAccountValidation, handleValidationErrors, deactivateAccount);
 
-// Admin only routes
-router.get('/activity-log', requireAdmin, getActivityLog);
+// Activity log: allow controller to decide (admin or same user)
+router.get('/activity-log', getActivityLog);
 router.get('/admin/users', requireAdmin, getAllUsers);
 router.get('/admin/users/:userId', requireAdmin, getUserById);
 router.put('/admin/users/:userId/role', requireAdmin, updateUserRole);

@@ -7,8 +7,15 @@
     "start": "node start-server.js",
     "dev": "nodemon start-server.js",
     "server": "node server.js",
-    "test": "jest",
-    "test:watch": "jest --watch"
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:ci": "node -e \"require('fs').mkdirSync('reports/junit', { recursive: true })\" && jest --runInBand --forceExit --reporters=default --reporters=jest-junit",
+  "test:backend": "jest --testPathPattern=tests --runInBand --config=jest.config.cjs",
+  "coverage:backend": "jest --coverage --coverageDirectory=coverage --coverageReporters=json-summary --coverageReporters=lcov --testPathPattern=tests --config=jest.config.cjs",
+  "lint": "eslint . --ext .js",
+  "lint:ci": "node scripts/save-eslint-report.js",
+    "security:audit": "npm audit --audit-level=high",
+    "prepare": "husky install"
   },
   "keywords": [
     "insurance",

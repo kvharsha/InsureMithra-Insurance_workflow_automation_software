@@ -159,10 +159,6 @@ const logActivity = (action) => {
 const checkRateLimit = (req, res, next) => {
   // This would integrate with a rate limiting service like Redis
   // For now, we'll use a simple in-memory approach
-  const key = `rate_limit_${req.user?.id || req.ip}`;
-  const now = Date.now();
-  const windowMs = 15 * 60 * 1000; // 15 minutes
-  const maxAttempts = 5;
 
   // In a production environment, you'd use Redis or similar
   // For now, we'll just pass through
@@ -176,9 +172,10 @@ const validateTokenFormat = (req, res, next) => {
   const authHeader = req.header('Authorization');
   
   if (!authHeader) {
+    // Normalize missing auth header message to match authenticate() for tests
     return res.status(401).json({
-      error: 'Authorization header is required.',
-      code: 'MISSING_AUTH_HEADER'
+      error: 'Access denied. No token provided.',
+      code: 'NO_TOKEN'
     });
   }
 

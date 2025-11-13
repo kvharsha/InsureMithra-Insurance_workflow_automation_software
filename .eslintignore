@@ -1,0 +1,15 @@
+# Ignore frontend build/artifacts and generated coverage files that should not be linted
+frontend/build/
+frontend/coverage/
+frontend/node_modules/
+frontend/public/
+frontend/**/*.map
+
+# Ignore general CI/artifact folders
+coverage/
+artifacts/
+deployment/
+
+# Ignore any generated reports or vendor bundles
+**/lcov-report/
+**/dist/
