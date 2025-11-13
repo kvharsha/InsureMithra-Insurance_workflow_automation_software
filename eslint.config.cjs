@@ -3,6 +3,19 @@ const nodePlugin = require('eslint-plugin-node');
 const importPlugin = require('eslint-plugin-import');
 
 module.exports = [
+  // Modern ESLint flat config: explicit ignore patterns (replaces .eslintignore)
+  {
+    ignores: [
+      'frontend/**',
+      'artifacts/**',
+      'coverage/**',
+      'reports/**',
+      'uploads/**',
+      'frontend/build/**',
+      'frontend/coverage/**',
+      '**/lcov-report/**'
+    ]
+  },
   js.configs.recommended,
   {
     // Include .cjs files (Jest lifecycle and script files) so the flat config
