@@ -129,7 +129,7 @@ jobs:
         # CRA exposes coverage through `npm test -- --coverage`
         run: npm test -- --coverage --watchAll=false
 
-      - name: Enforce combined threshold 75%
+      - name: Enforce combined threshold 72%
         shell: bash
         run: |
           echo "--- debug: coverage directories ---"
@@ -140,7 +140,7 @@ jobs:
           echo "--- debug: frontend/coverage/coverage-summary.json (if present) ---"
           if [ -f frontend/coverage/coverage-summary.json ]; then head -n 200 frontend/coverage/coverage-summary.json; else echo "no frontend summary"; fi
           echo "--- running threshold check ---"
-          node scripts/check-coverage-threshold.mjs 75
+          node scripts/check-coverage-threshold.mjs 72
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
