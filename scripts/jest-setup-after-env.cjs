@@ -35,4 +35,23 @@ module.exports = async () => {
       console.warn('jest-setup-after-env: dropDatabase (beforeEach) failed (ignored):', e && e.message);
     }
   });
+
+  // Ensure collections are cleared after each test. Using deleteMany on each
+  // collection is more resilient than dropDatabase when Jest runs workers in
+  // parallel or when other processes share the same in-memory server instance.
+  // This avoids duplicate-key errors and reduces flakiness under coverage runs.
+  afterEach(async () => {
+    try {
+      if (mongoose && mongoose.connection && mongoose.connection.readyState) {
+        const collections = await mongoose.connection.db.collections();
+        for (let collection of collections) {
+          // Skip internal system collections if present
+          if (collection.collectionName.startsWith('system.')) continue;
+          await collection.deleteMany({});
+        }
+      }
+    } catch (e) {
+      console.warn('jest-setup-after-env: afterEach cleanup failed (ignored):', e && e.message);
+    }
+  });
 };

@@ -87,7 +87,17 @@ const register = async (req, res) => {
   } catch (error) {
     console.log('Registration error details:', error);
     logger.error('Registration error:', error);
-    
+    // Handle duplicate key error (race conditions can still produce this)
+    if (error && (error.code === 11000 || error.code === 11001)) {
+      const dupField = Object.keys(error.keyValue || {})[0] || 'email';
+      return res.status(400).json({
+        error: 'User already exists with this email address.',
+        code: 'USER_EXISTS',
+        field: dupField,
+        details: error.keyValue || {}
+      });
+    }
+
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
       console.log('Validation errors:', errors);

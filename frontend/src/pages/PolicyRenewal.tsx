@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -11,7 +11,6 @@ import {
   FormControl,
   FormLabel,
   RadioGroup,
-  FormControlLabel,
   Radio,
   Divider,
   Chip,
@@ -40,34 +39,30 @@ const PolicyRenewal: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [processing, setProcessing] = useState(false);
-  const [renewalId, setRenewalId] = useState<string | null>(null);
+  const [, setRenewalId] = useState<string | null>(null);
+  
   const [renewalStatus, setRenewalStatus] = useState<any>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showFailureDialog, setShowFailureDialog] = useState(false);
 
-  useEffect(() => {
-    checkEligibility();
-  }, [purchaseId]);
-
-  const checkEligibility = async () => {
+  const checkEligibility = useCallback(async () => {
     if (!purchaseId) return;
-
     try {
       setLoading(true);
       setError(null);
-      console.log('Checking eligibility for purchaseId:', purchaseId); // Debug log
       const response = await renewalAPI.checkEligibility(purchaseId);
-      console.log('Eligibility response:', response); // Debug log
       setEligibility(response);
     } catch (err: any) {
-      console.error('Eligibility error:', err); // Debug log
-      console.error('Error response data:', err.response?.data); // Debug log
       const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to check renewal eligibility';
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [purchaseId]);
+
+  useEffect(() => {
+    checkEligibility();
+  }, [checkEligibility]);
 
   const handleRenew = async () => {
     if (!purchaseId) return;
@@ -100,6 +95,14 @@ const PolicyRenewal: React.FC = () => {
         if (status.renewal.status === 'success') {
           clearInterval(poll);
           setProcessing(false);
+          // Store last renewal info so other pages (dashboard/my purchases) can refresh
+          try {
+            if (eligibility && eligibility.purchaseId) {
+              localStorage.setItem('lastRenewal', JSON.stringify({ purchaseId: eligibility.purchaseId, newExpiryDate: status.renewal.newExpiryDate }));
+            }
+          } catch (e) {
+            // ignore storage errors
+          }
           setShowSuccessDialog(true);
         } else if (status.renewal.status === 'failed') {
           clearInterval(poll);

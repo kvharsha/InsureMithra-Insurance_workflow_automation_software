@@ -33,6 +33,23 @@ const forgotPasswordValidation = [
     .normalizeEmail()
 ];
 
+const registerValidation = [
+  body('firstName').notEmpty().withMessage('First name is required'),
+  body('lastName').notEmpty().withMessage('Last name is required'),
+  body('email').isEmail().withMessage('Please provide a valid email address').normalizeEmail(),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).*/)
+    .withMessage('Password must include uppercase, lowercase, number and special character'),
+  // confirmPassword is optional in tests/clients; only validate when provided
+  body('confirmPassword')
+    .optional()
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage('Passwords do not match'),
+  body('phone').optional().matches(/^\+?[1-9][\d]{0,15}$/).withMessage('Please enter a valid phone number')
+];
+
 const resetPasswordValidation = [
   body('token')
     .notEmpty()
@@ -66,7 +83,7 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 // Public routes
-router.post('/register', register); // Removed validation middleware
+router.post('/register', registerValidation, handleValidationErrors, register);
 router.post('/login', loginValidation, handleValidationErrors, login);
 router.post('/forgot-password', forgotPasswordValidation, handleValidationErrors, forgotPassword);
 router.post('/reset-password', resetPasswordValidation, handleValidationErrors, resetPassword);

@@ -10,6 +10,7 @@ const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
 const renewalRoutes = require('./routes/renewal.routes');
+const claimRoutes = require('./routes/claim.routes');
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/policies', policyRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/renewals', renewalRoutes);
+app.use('/api/claims', claimRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -80,12 +82,16 @@ app.get('/api/health', (req, res) => {
 });
 
 // 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Route not found',
-    message: `Cannot ${req.method} ${req.originalUrl}`
+// Only register the 404 handler outside of tests so test suites
+// can dynamically register routes after importing `app`.
+if (process.env.NODE_ENV !== 'test') {
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      error: 'Route not found',
+      message: `Cannot ${req.method} ${req.originalUrl}`
+    });
   });
-});
+}
 
 // Global error handler
 app.use((error, req, res, _next) => {

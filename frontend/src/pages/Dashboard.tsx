@@ -24,10 +24,12 @@ import {
   Description,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
-
+import { purchaseAPI } from '../services/api';
+import { Alert } from '@mui/material';
 const Dashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [, setPurchases] = React.useState<any[]>([]);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -78,6 +80,41 @@ const Dashboard: React.FC = () => {
       bgColor: '#ffebee',
     },
   ];
+
+  
+  const [renewalBanner, setRenewalBanner] = React.useState<{ purchaseId?: string; newExpiryDate?: string; show: boolean }>({ show: false });
+
+  React.useEffect(() => {
+    let mounted = true;
+    const loadPurchases = async () => {
+      try {
+        const data = await purchaseAPI.getUserPurchases();
+        if (!mounted) return;
+        setPurchases(data.purchases || data || []);
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    loadPurchases();
+
+    // Check for a lastRenewal flag set by the renewal page
+    try {
+      const raw = localStorage.getItem('lastRenewal');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setRenewalBanner({ purchaseId: parsed.purchaseId, newExpiryDate: parsed.newExpiryDate, show: true });
+        // Clear after reading
+        localStorage.removeItem('lastRenewal');
+        // refresh purchases to pick up updated expiry
+        loadPurchases();
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    return () => { mounted = false; };
+  }, []);
 
   const quickActions = [
     {
@@ -248,6 +285,11 @@ const Dashboard: React.FC = () => {
               Recent Activity
             </Typography>
             <Box>
+              {renewalBanner.show && (
+                <Alert severity="success" sx={{ mb: 2 }} onClose={() => setRenewalBanner({ show: false })}>
+                  Renewal Successful for policy. New expiry: {renewalBanner.newExpiryDate ? new Date(renewalBanner.newExpiryDate).toLocaleDateString() : ''}
+                </Alert>
+              )}
               <Box display="flex" alignItems="center" py={2} borderBottom="1px solid #eee">
                 <Shield sx={{ mr: 2, color: 'success.main' }} />
                 <Box>
