@@ -1,27 +1,42 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { CircularProgress, Box } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import AdminDashboard from './pages/AdminDashboard';
-import PolicySearch from './pages/PolicySearch';
-import Policies from './pages/Policies';
-import ComparePolicies from './pages/ComparePolicies';
-import PolicyPurchase from './pages/PolicyPurchase';
-import PolicyDetails from './pages/PolicyDetails';
-import MyPurchases from './pages/MyPurchases';
-import ClaimSubmit from './pages/ClaimSubmit';
-import MyClaims from './pages/MyClaims';
-import ClaimStatus from './pages/ClaimStatus';
-import PolicyRenewal from './pages/PolicyRenewal';
 import './App.css';
+
+// Lazy load heavy pages for better initial load performance
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const PolicySearch = lazy(() => import('./pages/PolicySearch'));
+const Policies = lazy(() => import('./pages/Policies'));
+const ComparePolicies = lazy(() => import('./pages/ComparePolicies'));
+const PolicyPurchase = lazy(() => import('./pages/PolicyPurchase'));
+const PolicyDetails = lazy(() => import('./pages/PolicyDetails'));
+const MyPurchases = lazy(() => import('./pages/MyPurchases'));
+const ClaimSubmit = lazy(() => import('./pages/ClaimSubmit'));
+const MyClaims = lazy(() => import('./pages/MyClaims'));
+const ClaimStatus = lazy(() => import('./pages/ClaimStatus'));
+const PolicyRenewal = lazy(() => import('./pages/PolicyRenewal'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <Box
+    display="flex"
+    justifyContent="center"
+    alignItems="center"
+    minHeight="80vh"
+  >
+    <CircularProgress size={60} />
+  </Box>
+);
 
 // Create a beautiful, professional theme
 const theme = createTheme({
@@ -105,76 +120,78 @@ function App() {
         <Router>
           <div className="App">
             <AppHeader />
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password/:token" element={<ResetPassword />} />
-              
-              {/* Protected routes */}
-              <Route path="/login" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-              <Route path="/policy-search" element={
-                <ProtectedRoute>
-                  <PolicySearch />
-                </ProtectedRoute>
-              } />
-              <Route path="/compare" element={
-                <ProtectedRoute>
-                  <ComparePolicies />
-                </ProtectedRoute>
-              } />
-              <Route path="/purchase/:policyId" element={
-                <ProtectedRoute>
-                  <PolicyPurchase />
-                </ProtectedRoute>
-              } />
-              <Route path="/my-purchases" element={
-                <ProtectedRoute>
-                  <MyPurchases />
-                </ProtectedRoute>
-              } />
-              <Route path="/claims/submit" element={
-                <ProtectedRoute>
-                  <ClaimSubmit />
-                </ProtectedRoute>
-              } />
-              <Route path="/claims" element={
-                <ProtectedRoute>
-                  <MyClaims />
-                </ProtectedRoute>
-              } />
-              <Route path="/claims/:id" element={
-                <ProtectedRoute>
-                  <ClaimStatus />
-                </ProtectedRoute>
-              } />
-              <Route path="/renewals/:purchaseId" element={
-                <ProtectedRoute>
-                  <PolicyRenewal />
-                </ProtectedRoute>
-              } />
-              {/* New public policies browser page (supports advanced filters) */}
-              <Route path="/policies" element={<Policies />} />
-              <Route path="/policies/:id/details" element={<PolicyDetails />} />
-              <Route path="/admin" element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
-              
-              {/* Default redirect */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
-            </Routes>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                
+                {/* Protected routes */}
+                <Route path="/login" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/policy-search" element={
+                  <ProtectedRoute>
+                    <PolicySearch />
+                  </ProtectedRoute>
+                } />
+                <Route path="/compare" element={
+                  <ProtectedRoute>
+                    <ComparePolicies />
+                  </ProtectedRoute>
+                } />
+                <Route path="/purchase/:policyId" element={
+                  <ProtectedRoute>
+                    <PolicyPurchase />
+                  </ProtectedRoute>
+                } />
+                <Route path="/my-purchases" element={
+                  <ProtectedRoute>
+                    <MyPurchases />
+                  </ProtectedRoute>
+                } />
+                <Route path="/claims/submit" element={
+                  <ProtectedRoute>
+                    <ClaimSubmit />
+                  </ProtectedRoute>
+                } />
+                <Route path="/claims" element={
+                  <ProtectedRoute>
+                    <MyClaims />
+                  </ProtectedRoute>
+                } />
+                <Route path="/claims/:id" element={
+                  <ProtectedRoute>
+                    <ClaimStatus />
+                  </ProtectedRoute>
+                } />
+                <Route path="/renewals/:purchaseId" element={
+                  <ProtectedRoute>
+                    <PolicyRenewal />
+                  </ProtectedRoute>
+                } />
+                {/* New public policies browser page (supports advanced filters) */}
+                <Route path="/policies" element={<Policies />} />
+                <Route path="/policies/:id/details" element={<PolicyDetails />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Default redirect */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+              </Routes>
+            </Suspense>
           </div>
         </Router>
       </AuthProvider>

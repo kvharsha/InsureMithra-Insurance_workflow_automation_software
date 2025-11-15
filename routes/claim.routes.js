@@ -3,6 +3,7 @@ const router = express.Router();
 const { submitClaim, getUserClaims, getClaimById, getClaimByIdDocument, updateClaimStatus, getAllClaimsAdmin } = require('../controllers/claim.controller');
 const { authenticate, validateTokenFormat } = require('../middleware/auth');
 const { authorizeRoles } = require('../middleware/roleAuth');
+const { cacheUserClaims } = require('../middleware/cache.middleware');
 const upload = require('../middleware/upload');
 
 // All claim endpoints require authentication
@@ -13,10 +14,10 @@ router.use(authenticate);
 // Expects multipart/form-data with fields: policyId, reason, and files (documents)
 router.post('/', upload.array('documents', 5), submitClaim);
 
-// GET /api/claims/my - Get all claims for authenticated user (alias)
-router.get('/my', getUserClaims);
-// GET /api/claims - keep existing route for backward compatibility
-router.get('/', getUserClaims);
+// GET /api/claims/my - Get all claims for authenticated user (alias) - cached (30s TTL)
+router.get('/my', cacheUserClaims, getUserClaims);
+// GET /api/claims - keep existing route for backward compatibility - cached (30s TTL)
+router.get('/', cacheUserClaims, getUserClaims);
 
 // Admin: list all claims
 router.get('/admin', authorizeRoles('admin'), getAllClaimsAdmin);

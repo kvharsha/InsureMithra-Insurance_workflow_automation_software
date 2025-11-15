@@ -2,9 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 
 const { logger } = require('./config/logger');
+const { timingMiddleware, getPerformanceStats, getSlowRequests } = require('./middleware/timing.middleware');
+const cache = require('./services/cache.service');
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
@@ -12,6 +15,22 @@ const purchaseRoutes = require('./routes/purchase.routes');
 const renewalRoutes = require('./routes/renewal.routes');
 
 const app = express();
+
+// Enable gzip compression
+const enableCompression = process.env.ENABLE_COMPRESSION !== 'false'; // Default to true
+if (enableCompression) {
+  app.use(compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    level: 6, // Balance between speed and compression ratio
+    threshold: 1024 // Only compress responses larger than 1KB
+  }));
+  logger.info('✅ Gzip compression enabled');
+}
 
 // Security middleware
 app.use(helmet());
@@ -59,8 +78,38 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Performance timing middleware
+app.use(timingMiddleware);
+
 // Logging middleware
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
+
+// Static assets caching headers
+app.use((req, res, next) => {
+  // Set Vary header for compressed responses
+  res.setHeader('Vary', 'Accept-Encoding');
+  
+  // Cache static assets based on file type
+  const staticFileExtensions = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/i;
+  
+  if (staticFileExtensions.test(req.path)) {
+    // Check if filename contains hash (e.g., main.abc123.js)
+    const hasHash = /\.[a-f0-9]{8,}\./i.test(req.path);
+    
+    if (hasHash) {
+      // Immutable hashed assets - cache for 1 year
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      // Non-hashed assets - cache for 1 hour
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
+  } else if (req.path === '/' || req.path.endsWith('.html')) {
+    // HTML files - short cache with revalidation
+    res.setHeader('Cache-Control', 'public, max-age=60, must-revalidate');
+  }
+  
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -77,6 +126,26 @@ app.get('/api/health', (req, res) => {
     service: 'InsureMithra API',
     version: '1.0.0'
   });
+});
+
+// Performance metrics endpoint
+app.get('/api/health/perf', (req, res) => {
+  try {
+    const minutes = parseInt(req.query.minutes) || 5;
+    const stats = getPerformanceStats(minutes);
+    const slowRequests = getSlowRequests(2000, 10);
+    const cacheStats = cache.getStats();
+    
+    res.status(200).json({
+      success: true,
+      performance: stats,
+      slowRequests,
+      cache: cacheStats
+    });
+  } catch (error) {
+    logger.error('Error fetching performance stats:', error);
+    res.status(500).json({ success: false, message: 'Error fetching performance stats' });
+  }
 });
 
 // 404 handler

@@ -5,6 +5,7 @@ const generateTransactionId = require('../utils/generateTransactionId');
 const generatePolicyPDF = require('../utils/generatePolicyPDF');
 const { logger } = require('../config/logger');
 const { calculateNewExpiry } = require('../utils/renewalCalculator');
+const { invalidateUserCache } = require('../middleware/cache.middleware');
 
 // POST /api/purchase/initiate
 // Body: { policyId }
@@ -76,6 +77,9 @@ const completePurchase = async (req, res) => {
     }
 
     await purchase.save();
+
+    // Invalidate user's purchase cache after successful completion
+    await invalidateUserCache(userId.toString());
 
     return res.status(200).json({ success: true, message: 'Purchase completed', data: purchase });
   } catch (err) {
