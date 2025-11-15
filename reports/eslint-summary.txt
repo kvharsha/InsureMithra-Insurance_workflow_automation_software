@@ -1,23 +1,19 @@
 
-C:\Users\suman\OneDrive\Documents\College\3rd year\5th sem\college\SE\InsureMithra2\official_se\app.js
-  91:27  warning  'next' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+/Users/dishan/Documents/PES/Sem_5/SE/10nov/PESU_RR_CSE_D_P04_Insurance_workflow_automation_software_InsureMithra/controllers/claim.controller.js
+  289:11  warning  '_previous' is assigned a value but never used  no-unused-vars
 
-C:\Users\suman\OneDrive\Documents\College\3rd year\5th sem\college\SE\InsureMithra2\official_se\controllers\claim.controller.js
-  285:11  warning  'previous' is assigned a value but never used  no-unused-vars
+/Users/dishan/Documents/PES/Sem_5/SE/10nov/PESU_RR_CSE_D_P04_Insurance_workflow_automation_software_InsureMithra/controllers/renewal.controller.js
+  438:14  warning  '_err' is defined but never used  no-unused-vars
+  484:14  warning  '_err' is defined but never used  no-unused-vars
 
-C:\Users\suman\OneDrive\Documents\College\3rd year\5th sem\college\SE\InsureMithra2\official_se\controllers\purchase.controller.js
-  150:59  error  'policy' is not defined  no-undef
-  155:67  error  'policy' is not defined  no-undef
+/Users/dishan/Documents/PES/Sem_5/SE/10nov/PESU_RR_CSE_D_P04_Insurance_workflow_automation_software_InsureMithra/tests/perf.latency.test.js
+  14:5  warning  'testUser' is assigned a value but never used  no-unused-vars
 
-C:\Users\suman\OneDrive\Documents\College\3rd year\5th sem\college\SE\InsureMithra2\official_se\controllers\renewal.controller.js
-  161:5   error    'setImmediate' is not defined    no-undef
-  438:14  warning  'err' is defined but never used  no-unused-vars
-  484:14  warning  'err' is defined but never used  no-unused-vars
+/Users/dishan/Documents/PES/Sem_5/SE/10nov/PESU_RR_CSE_D_P04_Insurance_workflow_automation_software_InsureMithra/tools/load-test/policy-search-autocannon.js
+  31:10  warning  'generateSearchUrl' is defined but never used  no-unused-vars
 
-C:\Users\suman\OneDrive\Documents\College\3rd year\5th sem\college\SE\InsureMithra2\official_se\utils\claimStatusNotifier.js
-  18:12  warning  'err' is defined but never used  no-unused-vars
+/Users/dishan/Documents/PES/Sem_5/SE/10nov/PESU_RR_CSE_D_P04_Insurance_workflow_automation_software_InsureMithra/utils/claimStatusNotifier.js
+  18:12  warning  '_err' is defined but never used  no-unused-vars
 
-✖ 8 problems (3 errors, 5 warnings)
+✖ 6 problems (0 errors, 6 warnings)
 
-(node:29800) ESLintIgnoreWarning: The ".eslintignore" file is no longer supported. Switch to using the "ignores" property in "eslint.config.js": https://eslint.org/docs/latest/use/configure/migration-guide#ignoring-files
-(Use `node --trace-warnings ...` to show where the warning was created)

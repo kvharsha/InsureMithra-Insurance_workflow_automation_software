@@ -238,9 +238,7 @@ jobs:
         uses: trufflesecurity/trufflehog@v3.81.10
         with:
           path: .
-          json: true
-          allow: true
-          redact: true
+          extra_args: --json --allow-verification-overlap
       - name: Save truffleHog report
         shell: bash
         run: |

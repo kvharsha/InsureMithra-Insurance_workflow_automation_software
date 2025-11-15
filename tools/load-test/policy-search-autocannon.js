@@ -10,6 +10,7 @@
 const autocannon = require('autocannon');
 const fs = require('fs');
 const path = require('path');
+const { URLSearchParams } = require('url');
 
 // Configuration
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5001';

@@ -9,10 +9,8 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const Policy = require('../models/policy.model');
 const User = require('../models/user.model');
-const jwt = require('jsonwebtoken');
 
 let mongoServer;
-let authToken;
 let testUser;
 
 // Performance targets from Epic 4 Story 1
@@ -32,12 +30,6 @@ beforeAll(async () => {
     phone: '1234567890',
     role: 'user'
   });
-
-  authToken = jwt.sign(
-    { userId: testUser._id, email: testUser.email, role: testUser.role },
-    process.env.JWT_SECRET || 'test-secret-key',
-    { expiresIn: '1h' }
-  );
 
   // Seed test policies
   const policies = [];

@@ -17,7 +17,6 @@ const MAX_TIMINGS = 1000; // Keep last 1000 requests in memory
  * Logs response time for each request
  */
 const timingMiddleware = (req, res, next) => {
-  const startTime = Date.now();
   const startHrTime = process.hrtime();
 
   // Store original end function
@@ -28,7 +27,6 @@ const timingMiddleware = (req, res, next) => {
     // Calculate response time
     const hrDiff = process.hrtime(startHrTime);
     const responseTimeMs = (hrDiff[0] * 1000 + hrDiff[1] / 1000000).toFixed(2);
-    const endTime = Date.now();
 
     // Log to performance log
     const logEntry = {
