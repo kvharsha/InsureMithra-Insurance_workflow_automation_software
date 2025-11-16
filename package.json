@@ -10,6 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "node -e \"require('fs').mkdirSync('reports/junit', { recursive: true })\" && jest --runInBand --forceExit --reporters=default --reporters=jest-junit",
+    "env-check": "node scripts/env-check.js",
     "test:backend": "jest --testPathPattern=tests --runInBand --config=jest.config.cjs",
     "test:renewal": "jest tests/renewal.test.js --coverage --collectCoverageFrom='controllers/renewal.controller.js' --collectCoverageFrom='routes/renewal.routes.js' --collectCoverageFrom='models/renewal.model.js' --collectCoverageFrom='services/payment.service.js' --collectCoverageFrom='utils/renewalCalculator.js' --collectCoverageFrom='utils/transactionId.js'",
     "coverage:backend": "jest --coverage --coverageDirectory=coverage --coverageReporters=json-summary --coverageReporters=lcov --testPathPattern=tests --config=jest.config.cjs",
@@ -37,7 +38,7 @@
     "mongoose": "^7.5.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.4",
+    "nodemailer": "^7.0.10",
     "pdfkit": "^0.17.2",
     "winston": "^3.10.0"
   },

@@ -10,6 +10,7 @@ const profileRoutes = require('./routes/profile.routes');
 const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
 const renewalRoutes = require('./routes/renewal.routes');
+const claimRoutes = require('./routes/claim.routes');
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/policies', policyRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/renewals', renewalRoutes);
+app.use('/api/claims', claimRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -79,22 +81,34 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Route not found',
-    message: `Cannot ${req.method} ${req.originalUrl}`
+// In test environment we allow tests to register routes after requiring `app`.
+// Do not register a global 404 handler in test mode so tests can add test-only routes.
+if (process.env.NODE_ENV !== 'test') {
+  // 404 handler
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      error: 'Route not found',
+      message: `Cannot ${req.method} ${req.originalUrl}`
+    });
   });
-});
 
-// Global error handler
-app.use((error, req, res, _next) => {
-  logger.error('Unhandled error:', error);
-  
-  res.status(error.status || 500).json({
-    error: error.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+  // Global error handler
+  app.use((error, req, res, _next) => {
+    logger.error('Unhandled error:', error);
+    
+    res.status(error.status || 500).json({
+      error: error.message || 'Internal server error',
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+    });
   });
-});
+} else {
+  // In test environment still expose a simple error handler so errors surface in tests
+  app.use((err, req, res, next) => {
+    // If headers already sent, delegate to default
+    if (res.headersSent) return next(err);
+    logger.error('Test error handler:', err);
+    res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+  });
+}
 
 module.exports = app;

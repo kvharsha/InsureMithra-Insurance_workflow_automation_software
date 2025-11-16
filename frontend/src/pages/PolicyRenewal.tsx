@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -11,7 +11,6 @@ import {
   FormControl,
   FormLabel,
   RadioGroup,
-  FormControlLabel,
   Radio,
   Divider,
   Chip,
@@ -40,16 +39,12 @@ const PolicyRenewal: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [processing, setProcessing] = useState(false);
-  const [renewalId, setRenewalId] = useState<string | null>(null);
+  // renewalId state removed because it's not used in the UI
   const [renewalStatus, setRenewalStatus] = useState<any>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showFailureDialog, setShowFailureDialog] = useState(false);
 
-  useEffect(() => {
-    checkEligibility();
-  }, [purchaseId]);
-
-  const checkEligibility = async () => {
+  const checkEligibility = useCallback(async () => {
     if (!purchaseId) return;
 
     try {
@@ -67,7 +62,11 @@ const PolicyRenewal: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [purchaseId]);
+
+  useEffect(() => {
+    checkEligibility();
+  }, [checkEligibility]);
 
   const handleRenew = async () => {
     if (!purchaseId) return;
@@ -76,7 +75,7 @@ const PolicyRenewal: React.FC = () => {
       setProcessing(true);
       setError(null);
       const response = await renewalAPI.initiateRenewal(purchaseId, paymentMethod);
-      setRenewalId(response.renewalId);
+      // renewalId available in response if needed but not stored in UI
 
       // Poll for renewal status
       pollRenewalStatus(response.renewalId);
