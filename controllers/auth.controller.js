@@ -62,6 +62,30 @@ const register = async (req, res) => {
 
     await user.save();
 
+    // Send verification email (non-blocking for user flow). If SMTP is misconfigured,
+    // sendEmail will attempt a fallback and errors are logged but do not block registration.
+    (async () => {
+      try {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const verificationLink = `${frontendUrl}/verify-email/${verificationToken}`;
+        await sendEmail({
+          to: user.email,
+          subject: 'Please verify your email',
+          html: `
+            <p>Hello ${user.firstName},</p>
+            <p>Thanks for registering. Please verify your email by clicking the link below:</p>
+            <p><a href="${verificationLink}">Verify my email</a></p>
+            <p>This link will expire in 24 hours.</p>
+          `,
+          text: `Verify your email: ${verificationLink}`
+        });
+        logger.info(`Verification email queued for: ${user.email}`);
+      } catch (mailErr) {
+        // Keep registration robust: log error but don't surface to client
+        logger.error('Failed to send verification email:', mailErr && mailErr.message ? mailErr.message : mailErr);
+      }
+    })();
+
     // Generate JWT token
     const token = generateToken(user._id);
 
@@ -113,13 +137,18 @@ const login = async (req, res) => {
 
     // Find user with password
     const user = await User.findByEmail(email);
-    
     if (!user) {
       auditLog.failedLogin(email, req.ip, 'User not found');
       return res.status(401).json({
         error: 'Invalid email or password.',
         code: 'INVALID_CREDENTIALS'
       });
+    }
+
+    // Defensive: ensure password field is available (findByEmail should include it)
+    if (!user.password) {
+      logger.warn(`User found but password field missing for email=${email}`);
+      return res.status(500).json({ error: 'Authentication failed. Missing credentials on server.' });
     }
 
     // Check if account is locked
@@ -269,10 +298,12 @@ const forgotPassword = async (req, res) => {
       });
     } catch (mailErr) {
       logger.error('Error sending reset email:', mailErr);
-      // Do not reveal email send issues to client
+      // Attach error info to console for easier debugging while keeping client response generic
+      console.error('Error sending reset email details:', mailErr && mailErr.message ? mailErr.message : mailErr);
     }
 
-    logger.info(`Password reset requested for: ${email}`);
+    // Log that a reset token was created (helpful during debugging)
+    logger.info(`Password reset requested for: ${email} (reset token saved in DB)`);
 
     res.json({
       message: 'If an account with that email exists, a password reset link has been sent.'

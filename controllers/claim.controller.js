@@ -118,6 +118,23 @@ const submitClaim = async (req, res) => {
 
     logger.info(`Claim submitted successfully: ${claimId} by user ${userId}`);
 
+    // Send acknowledgement email to claimant (best-effort, do not block response)
+    try {
+      const claimOwner = await User.findById(userId);
+      if (claimOwner && claimOwner.email) {
+        const sent = await sendClaimStatusEmail(claimOwner.email, claim.claimId, 'Submitted');
+        if (sent) {
+          logger.info(`Claim submission email sent to ${claimOwner.email} for ${claim.claimId}`);
+        } else {
+          logger.warn(`Claim submission email failed to send to ${claimOwner.email} for ${claim.claimId}`);
+        }
+      } else {
+        logger.warn(`Claim submission: user email missing for userId ${userId}`);
+      }
+    } catch (emailErr) {
+      logger.error('Error sending claim submission email:', emailErr);
+    }
+
     return res.status(200).json({
       success: true,
       claimId,
@@ -282,7 +299,6 @@ const updateClaimStatus = async (req, res) => {
     const claim = await Claim.findOne({ claimId: id });
     if (!claim) return res.status(404).json({ success: false, message: 'Claim not found' });
 
-    const _previous = claim.status; // Store previous status (prefixed with _ to indicate unused)
     claim.status = status;
     claim.history = claim.history || [];
     claim.history.push({ status, updatedAt: new Date(), note: note || '', updatedBy: user._id });
