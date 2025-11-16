@@ -4,6 +4,7 @@ const User = require('../models/user.model');
 const generateClaimId = require('../utils/claimIdGenerator');
 const storageService = require('../services/storage.service');
 const { logger } = require('../config/logger');
+const { invalidateUserCache } = require('../middleware/cache.middleware');
 const fs = require('fs');
 const path = require('path');
 const { sendClaimStatusEmail } = require('../utils/claimStatusNotifier');
@@ -115,6 +116,9 @@ const submitClaim = async (req, res) => {
 
     // Log the submission
     logClaimSubmission(userId, claimId, policyId, claim.audit.ipAddress);
+
+    // Invalidate user's claims cache after submission
+    await invalidateUserCache(userId.toString());
 
     logger.info(`Claim submitted successfully: ${claimId} by user ${userId}`);
 
@@ -309,6 +313,9 @@ const updateClaimStatus = async (req, res) => {
 
     // Log to claims.log
     logStatusChange(claim.claimId, status, user.email || user._id);
+
+    // Invalidate claim owner's cache after status update
+    await invalidateUserCache(claim.userId.toString());
 
     // Notify user by email (best-effort)
     try {

@@ -14,6 +14,8 @@
     "test:backend": "jest --testPathPattern=tests --runInBand --config=jest.config.cjs",
     "test:renewal": "jest tests/renewal.test.js --coverage --collectCoverageFrom='controllers/renewal.controller.js' --collectCoverageFrom='routes/renewal.routes.js' --collectCoverageFrom='models/renewal.model.js' --collectCoverageFrom='services/payment.service.js' --collectCoverageFrom='utils/renewalCalculator.js' --collectCoverageFrom='utils/transactionId.js'",
     "coverage:backend": "jest --coverage --coverageDirectory=coverage --coverageReporters=json-summary --coverageReporters=lcov --testPathPattern=tests --config=jest.config.cjs",
+    "bench:search": "node tools/load-test/policy-search-autocannon.js",
+    "bench:details": "node tools/load-test/policy-details-autocannon.js",
     "lint": "eslint . --ext .js",
     "lint:ci": "node scripts/save-eslint-report.js",
     "security:audit": "npm audit --audit-level=high"
@@ -28,13 +30,16 @@
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-rate-limit": "^6.10.0",
     "express-validator": "^7.0.1",
     "helmet": "^7.0.0",
+    "ioredis": "^5.3.2",
     "jsonwebtoken": "^9.0.2",
+    "lru-cache": "^10.0.1",
     "mongoose": "^7.5.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
@@ -44,6 +49,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
+    "autocannon": "^7.12.0",
     "eslint": "^9.0.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-node": "^11.1.0",

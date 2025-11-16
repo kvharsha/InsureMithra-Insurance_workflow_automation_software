@@ -15,6 +15,14 @@ yarn-error.log*
 logs/
 *.log
 
+# Performance logs and benchmarks (keep timestamped results, ignore latest)
+logs/perf.log
+logs/cache.log
+benchmarks/*-latest.json
+benchmarks/*.html
+benchmarks/*.txt
+# Keep: benchmarks/*.json (timestamped), benchmarks/baseline-*.json
+
 # Runtime data
 pids/
 *.pid
