@@ -6,6 +6,7 @@ const { calculateDaysUntilExpiry, isEligibleForRenewal, calculateNewExpiry } = r
 const { generateTransactionId } = require('../utils/transactionId');
 const { processPayment } = require('../services/payment.service');
 const { sendEmail } = require('../config/mailer');
+const { sendRenewalSuccessEmail } = require('../utils/renewalSuccessMailer');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -207,7 +208,23 @@ const completeRenewalSuccess = async (renewal, purchase, paymentResult) => {
     // Re-fetch purchase with populated policy to get tenure
     const fullPurchase = await Purchase.findById(purchase._id).populate('policyId');
     if (!fullPurchase || !fullPurchase.policyId) {
-      throw new Error('Purchase or policy not found');
+      // Gracefully handle missing purchase/policy in async processing
+      const errMsg = 'Purchase or policy not found';
+      logger.error(errMsg);
+      renewal.status = 'failed';
+      renewal.errorMessage = errMsg;
+      renewal.completedAt = new Date();
+      try { await renewal.save(); } catch (saveErr) { void saveErr; }
+      await logRenewalEvent({
+        event: 'RENEWAL_FAILED',
+        transactionId: renewal.transactionId,
+        purchaseId: purchase._id,
+        userId: renewal.userId,
+        amount: renewal.amount,
+        error: errMsg,
+        timestamp: new Date().toISOString()
+      });
+      return; // stop further processing
     }
     
     const policy = fullPurchase.policyId;
@@ -240,6 +257,7 @@ const completeRenewalSuccess = async (renewal, purchase, paymentResult) => {
       event: 'RENEWAL_SUCCESS',
       transactionId: renewal.transactionId,
       purchaseId: purchase._id,
+      policyNumber: purchase.policyNumber || policy.policyNumber || policy.name || '',
       userId: renewal.userId,
       amount: renewal.amount,
       oldExpiry: oldExpiry,
@@ -247,8 +265,24 @@ const completeRenewalSuccess = async (renewal, purchase, paymentResult) => {
       timestamp: new Date().toISOString()
     });
 
-    // Send success email
-    await sendRenewalSuccessEmail(renewal, purchase, newExpiryDate);
+    // Send success email (use utility). Don't block on email failure.
+    try {
+      const user = await require('../models/user.model').findById(renewal.userId);
+      const policy = await Policy.findById(purchase.policyId);
+      if (user && user.email) {
+        await sendRenewalSuccessEmail(
+          user.email,
+          user.firstName || user.email,
+          purchase.policyNumber || policy.name || '',
+          newExpiryDate.toISOString().split('T')[0]
+        );
+        logger.info(`Renewal success email sent to ${user.email}`);
+      } else {
+        logger.warn(`Renewal success: user email missing for userId ${renewal.userId}`);
+      }
+    } catch (emailErr) {
+      logger.error('Email send failed for renewal success', emailErr);
+    }
 
     logger.info(`Renewal completed successfully: ${renewal.transactionId}`);
 
@@ -367,7 +401,7 @@ const getMyRenewals = async (req, res) => {
         path: 'purchaseId',
         populate: { path: 'policyId' }
       })
-      .sort({ createdAt: -1 })
+      .sort({ completedAt: -1, createdAt: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit));
 
@@ -422,51 +456,7 @@ const logRenewalEvent = async (eventData) => {
   }
 };
 
-/**
- * Send renewal success email
- */
-const sendRenewalSuccessEmail = async (renewal, purchase, newExpiryDate) => {
-  try {
-    const user = await require('../models/user.model').findById(renewal.userId);
-    const policy = await Policy.findById(purchase.policyId);
 
-    // Load email template
-    const templatePath = path.join(__dirname, '../templates/renewalSuccess.html');
-    let html;
-    try {
-      html = await fs.readFile(templatePath, 'utf8');
-    } catch (_err) {
-      // Fallback to simple text if template doesn't exist
-      html = `
-        <h2>Policy Renewal Successful</h2>
-        <p>Dear ${user.firstName},</p>
-        <p>Your policy <strong>${policy.name}</strong> has been successfully renewed.</p>
-        <p><strong>Transaction ID:</strong> ${renewal.transactionId}</p>
-        <p><strong>Amount Paid:</strong> ${renewal.currency} ${renewal.amount}</p>
-        <p><strong>New Expiry Date:</strong> ${newExpiryDate.toDateString()}</p>
-        <p>Thank you for choosing InsureMithra!</p>
-      `;
-    }
-
-    // Replace placeholders
-    html = html.replace(/{{userName}}/g, user.firstName)
-      .replace(/{{policyName}}/g, policy.name)
-      .replace(/{{transactionId}}/g, renewal.transactionId)
-      .replace(/{{amount}}/g, `${renewal.currency} ${renewal.amount}`)
-      .replace(/{{newExpiryDate}}/g, newExpiryDate.toDateString());
-
-    await sendEmail({
-      to: user.email,
-      subject: 'Policy Renewal Successful - InsureMithra',
-      html,
-      text: `Your policy ${policy.name} has been successfully renewed. Transaction ID: ${renewal.transactionId}. New expiry date: ${newExpiryDate.toDateString()}`
-    });
-
-    logger.info(`Renewal success email sent to ${user.email}`);
-  } catch (error) {
-    logger.error('Error sending renewal success email:', error);
-  }
-};
 
 /**
  * Send renewal failure email
@@ -481,7 +471,8 @@ const sendRenewalFailureEmail = async (renewal, purchase) => {
     let html;
     try {
       html = await fs.readFile(templatePath, 'utf8');
-    } catch (_err) {
+    } catch (err) {
+      void err;
       // Fallback to simple text if template doesn't exist
       html = `
         <h2>Policy Renewal Failed</h2>

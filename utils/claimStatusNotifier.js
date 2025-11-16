@@ -15,7 +15,8 @@ function renderTemplate(claimId, status, date) {
     html = html.replace(/\$\{status\}/g, status);
     html = html.replace(/\$\{date\}/g, date);
     return html;
-  } catch (_err) {
+  } catch (err) {
+    void err;
     return `<p>Your claim <strong>${claimId}</strong> status has changed to <strong>${status}</strong> on ${date}.</p>`;
   }
 }

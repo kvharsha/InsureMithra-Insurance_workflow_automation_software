@@ -43,7 +43,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined'));
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/insuremithra', {
+const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/insuremithra';
+
+mongoose.connect(mongoUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
