@@ -10,29 +10,12 @@
 const autocannon = require('autocannon');
 const fs = require('fs');
 const path = require('path');
-const { URLSearchParams } = require('url');
 
 // Configuration
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5001';
 const DURATION = parseInt(process.env.BENCH_DURATION) || 30; // seconds
 const CONNECTIONS = parseInt(process.env.BENCH_CONNECTIONS) || 50;
 const PIPELINING = parseInt(process.env.BENCH_PIPELINING) || 1;
-
-// Test scenarios with different search queries
-const searchQueries = [
-  { type: 'health', provider: 'StarHealth' },
-  { type: 'life', provider: 'LIC' },
-  { type: 'vehicle', premium_max: 50000 },
-  { coverageAmount_min: 1000000 },
-  {}  // Empty query - all policies
-];
-
-// Generate URL with query string
-function generateSearchUrl() {
-  const query = searchQueries[Math.floor(Math.random() * searchQueries.length)];
-  const params = new URLSearchParams(query).toString();
-  return `${BASE_URL}/api/policies/search${params ? '?' + params : ''}`;
-}
 
 // Autocannon configuration
 const config = {
