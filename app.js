@@ -150,11 +150,6 @@ app.get('/api/health/perf', (req, res) => {
   }
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Route not found',
-    message: `Cannot ${req.method} ${req.originalUrl}`
 // In test environment we allow tests to register routes after requiring `app`.
 // Do not register a global 404 handler in test mode so tests can add test-only routes.
 if (process.env.NODE_ENV !== 'test') {

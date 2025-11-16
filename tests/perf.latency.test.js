@@ -11,7 +11,6 @@ const Policy = require('../models/policy.model');
 const User = require('../models/user.model');
 
 let mongoServer;
-let testUser;
 
 // Performance targets from Epic 4 Story 1
 const PERFORMANCE_TARGET_MS = 2000; // Main flows should respond within 2 seconds
@@ -22,7 +21,7 @@ beforeAll(async () => {
   await mongoose.connect(mongoServer.getUri());
 
   // Create test user
-  testUser = await User.create({
+  await User.create({
     email: 'test@example.com',
     password: '$2a$10$abcdefghijklmnopqrstuvwxyz', // pre-hashed
     firstName: 'Test',
