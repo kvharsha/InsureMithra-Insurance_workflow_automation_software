@@ -239,7 +239,7 @@ jobs:
         uses: trufflesecurity/trufflehog@v3.81.10
         with:
           path: .
-          extra_args: --json --no-verification --only-verified=false
+          extra_args: --json --no-verification
       - name: Save truffleHog report
         shell: bash
         run: |
