@@ -87,12 +87,13 @@ async function checkMultipleServices(urls, timeoutMs = 5000) {
  */
 function validateServiceUrl(url) {
   try {
+    // eslint-disable-next-line no-undef
     const parsed = new URL(url);
     if (!['http:', 'https:'].includes(parsed.protocol)) {
       return { valid: false, error: 'Only HTTP and HTTPS protocols are supported' };
     }
-    return { valid: true, url: parsed.href };
-  } catch (error) {
+      return { valid: true, url: parsed.href };
+  } catch {
     return { valid: false, error: 'Invalid URL format' };
   }
 }

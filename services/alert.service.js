@@ -37,7 +37,8 @@ async function sendEmailAlert(serviceUrl, incident, downtimeMs) {
         .replace(/{{incidentId}}/g, incident._id.toString())
         .replace(/{{logsUrl}}/g, `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/downtimes`);
         
-    } catch (err) {
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
       logger.warn('Downtime alert template not found, using fallback HTML');
       html = generateFallbackHtml(serviceUrl, incident, downtimeMs);
     }

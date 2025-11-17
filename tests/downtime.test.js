@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const app = require('../app');
 const Downtime = require('../models/downtime.model');
 const { checkService } = require('../services/health.service');
-const { processHealthCheckResult, clearAllStates, resetServiceState, getServiceState } = require('../services/downtime.service');
+const { processHealthCheckResult, clearAllStates, getServiceState } = require('../services/downtime.service');
 const { sendEmailAlert } = require('../services/alert.service');
 const downtimeMonitor = require('../scheduler/downtimeMonitor');
 
@@ -218,7 +218,6 @@ describe('Downtime Monitoring System', () => {
   
   describe('Admin API Endpoints', () => {
     let adminToken;
-    let adminUser;
     
     beforeAll(async () => {
       // Create admin user for testing
@@ -227,7 +226,7 @@ describe('Downtime Monitoring System', () => {
       // Clean up any existing test admin
       await User.deleteOne({ email: 'admin@test.com' });
       
-      adminUser = await User.create({
+      await User.create({
         firstName: 'Admin',
         lastName: 'User',
         email: 'admin@test.com',
