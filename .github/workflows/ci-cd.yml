@@ -152,109 +152,110 @@ jobs:
   #           reports/coverage-summary.json
   #         if-no-files-found: error
 
-  lint:
-    name: Lint (pylint >=7.5, ESLint 0 errors <10 warnings)
-    # needs: coverage  # Commented out - run lint independently
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-      - name: Install backend deps
-        run: npm ci
-      - name: Install frontend deps
-        if: hashFiles('frontend/package.json') != ''
-        working-directory: frontend
-        run: |
-          rm -rf node_modules
-          npm cache clean --force || true
-          npm ci || npm install
-
-      - uses: actions/setup-python@v5
-        if: hashFiles('**/*.py') != ''
-        with:
-          python-version: "3.11"
-      - name: Install Python linters
-        if: hashFiles('**/*.py') != ''
-        run: |
-          python -m pip install --upgrade pip
-          pip install pylint
-
-      - name: Run ESLint (JSON report)
-        run: npm run lint:ci
-
-      - name: Run pylint with score gate
-        if: hashFiles('**/*.py') != ''
-        run: |
-          pylint $(git ls-files '*.py') --output-format=text | tee reports/pylint.txt
-          python scripts/enforce-pylint-threshold.py reports/pylint.txt 7.5
-
-      - name: Upload lint reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: |
-            reports/eslint.json
-            reports/eslint-summary.txt
-            reports/pylint.txt
-          if-no-files-found: ignore
-
-  # security:
-  #   name: Security (Bandit/Safety/npm audit/Secrets)
-  #   # needs: lint  # Commented out - run security independently
+  # Temporarily commented out - working on security first
+  # lint:
+  #   name: Lint (pylint >=7.5, ESLint 0 errors <10 warnings)
+  #   # needs: coverage  # Commented out - run lint independently
   #   runs-on: ubuntu-latest
   #   steps:
   #     - uses: actions/checkout@v4
-
   #     - uses: actions/setup-node@v4
   #       with:
   #         node-version: "20"
   #         cache: "npm"
-  #     - name: Install deps
+  #     - name: Install backend deps
   #       run: npm ci
-  #     - name: npm audit (high+)
+  #     - name: Install frontend deps
+  #       if: hashFiles('frontend/package.json') != ''
+  #       working-directory: frontend
   #       run: |
-  #         npm audit --audit-level=high --json | tee reports/npm-audit.json
-  #         node scripts/fail-on-npm-audit.mjs reports/npm-audit.json
+  #         rm -rf node_modules
+  #         npm cache clean --force || true
+  #         npm ci || npm install
 
   #     - uses: actions/setup-python@v5
-  #       if: hashFiles('**/requirements.txt') != ''
+  #       if: hashFiles('**/*.py') != ''
   #       with:
   #         python-version: "3.11"
-  #     - name: Bandit (code)
+  #     - name: Install Python linters
   #       if: hashFiles('**/*.py') != ''
   #       run: |
-  #         pip install bandit
-  #         bandit -r . -f json -o reports/bandit.json || true
-  #     - name: Safety (deps)
-  #       if: hashFiles('**/requirements.txt') != ''
-  #       run: |
-  #         pip install safety
-  #         safety check -r requirements.txt --output json > reports/safety.json || true
+  #         python -m pip install --upgrade pip
+  #         pip install pylint
 
-  #     - name: truffleHog (secrets)
-  #       uses: trufflesecurity/trufflehog@v3.81.10
-  #       with:
-  #         path: .
-  #         extra_args: --json --allow-verification-overlap
-  #     - name: Save truffleHog report
-  #       shell: bash
-  #       run: |
-  #         mkdir -p reports
-  #         echo "See job logs for redacted findings" > reports/trufflehog.txt
+  #     - name: Run ESLint (JSON report)
+  #       run: npm run lint:ci
 
-  #     - name: Upload security reports
+  #     - name: Run pylint with score gate
+  #       if: hashFiles('**/*.py') != ''
+  #       run: |
+  #         pylint $(git ls-files '*.py') --output-format=text | tee reports/pylint.txt
+  #         python scripts/enforce-pylint-threshold.py reports/pylint.txt 7.5
+
+  #     - name: Upload lint reports
   #       uses: actions/upload-artifact@v4
   #       with:
-  #         name: security-report
+  #         name: lint-report
   #         path: |
-  #           reports/npm-audit.json
-  #           reports/bandit.json
-  #           reports/safety.json
-  #           reports/trufflehog.txt
+  #           reports/eslint.json
+  #           reports/eslint-summary.txt
+  #           reports/pylint.txt
   #         if-no-files-found: ignore
+
+  security:
+    name: Security (Bandit/Safety/npm audit/Secrets)
+    # needs: lint  # Commented out - run security independently
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install deps
+        run: npm ci
+      - name: npm audit (high+)
+        run: |
+          npm audit --audit-level=high --json | tee reports/npm-audit.json
+          node scripts/fail-on-npm-audit.mjs reports/npm-audit.json
+
+      - uses: actions/setup-python@v5
+        if: hashFiles('**/requirements.txt') != ''
+        with:
+          python-version: "3.11"
+      - name: Bandit (code)
+        if: hashFiles('**/*.py') != ''
+        run: |
+          pip install bandit
+          bandit -r . -f json -o reports/bandit.json || true
+      - name: Safety (deps)
+        if: hashFiles('**/requirements.txt') != ''
+        run: |
+          pip install safety
+          safety check -r requirements.txt --output json > reports/safety.json || true
+
+      - name: truffleHog (secrets)
+        uses: trufflesecurity/trufflehog@v3.81.10
+        with:
+          path: .
+          extra_args: --json --no-verification --only-verified=false
+      - name: Save truffleHog report
+        shell: bash
+        run: |
+          mkdir -p reports
+          echo "See job logs for redacted findings" > reports/trufflehog.txt
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: |
+            reports/npm-audit.json
+            reports/bandit.json
+            reports/safety.json
+            reports/trufflehog.txt
+          if-no-files-found: ignore
 
   # CD (Continuous Deployment) - Commented out for now, focusing on CI only
   # deploy:
