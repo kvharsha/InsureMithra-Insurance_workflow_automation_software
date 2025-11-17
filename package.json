@@ -13,6 +13,8 @@
     "env-check": "node scripts/env-check.js",
     "test:backend": "jest --testPathPattern=tests --runInBand --config=jest.config.cjs",
     "test:renewal": "jest tests/renewal.test.js --coverage --collectCoverageFrom='controllers/renewal.controller.js' --collectCoverageFrom='routes/renewal.routes.js' --collectCoverageFrom='models/renewal.model.js' --collectCoverageFrom='services/payment.service.js' --collectCoverageFrom='utils/renewalCalculator.js' --collectCoverageFrom='utils/transactionId.js'",
+    "test:downtime": "jest tests/downtime.test.js --coverage --collectCoverageFrom='services/health.service.js' --collectCoverageFrom='services/downtime.service.js' --collectCoverageFrom='services/alert.service.js' --collectCoverageFrom='scheduler/downtimeMonitor.js' --collectCoverageFrom='models/downtime.model.js'",
+    "monitor:test": "node -e \"require('./scheduler/downtimeMonitor').runHealthCheck().then(() => process.exit(0)).catch(e => {console.error(e); process.exit(1);})\"",
     "coverage:backend": "jest --coverage --coverageDirectory=coverage --coverageReporters=json-summary --coverageReporters=lcov --testPathPattern=tests --config=jest.config.cjs",
     "bench:search": "node tools/load-test/policy-search-autocannon.js",
     "bench:details": "node tools/load-test/policy-details-autocannon.js",
@@ -29,6 +31,7 @@
   "author": "InsureMithra Team",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -43,6 +46,7 @@
     "mongoose": "^7.5.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
     "pdfkit": "^0.17.2",
     "winston": "^3.10.0"

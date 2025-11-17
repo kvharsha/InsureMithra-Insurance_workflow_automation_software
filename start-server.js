@@ -57,6 +57,14 @@ mongoose.connect(mongoUri, {
   } catch (e) {
     console.error('Seed failed:', e);
   }
+  
+  // Start downtime monitor after DB connection
+  try {
+    const downtimeMonitor = require('./scheduler/downtimeMonitor');
+    downtimeMonitor.start();
+  } catch (e) {
+    console.error('Failed to start downtime monitor:', e);
+  }
 })
 .catch((error) => {
   console.error('❌ MongoDB connection error:', error);
@@ -70,6 +78,7 @@ const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
 const claimRoutes = require('./routes/claim.routes');
 const renewalRoutes = require('./routes/renewal.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -78,6 +87,7 @@ app.use('/api/policies', policyRoutes);
 app.use('/api/purchase', purchaseRoutes);
 app.use('/api/claims', claimRoutes);
 app.use('/api/renewals', renewalRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

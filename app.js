@@ -14,6 +14,7 @@ const policyRoutes = require('./routes/policy.routes');
 const purchaseRoutes = require('./routes/purchase.routes');
 const renewalRoutes = require('./routes/renewal.routes');
 const claimRoutes = require('./routes/claim.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -119,6 +120,7 @@ app.use('/api/policies', policyRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/renewals', renewalRoutes);
 app.use('/api/claims', claimRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
