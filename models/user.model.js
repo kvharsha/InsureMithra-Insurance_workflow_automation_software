@@ -91,8 +91,9 @@ userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
 
   try {
-    // Hash password with cost of 12
-    const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
+    // Determine bcrypt rounds from env, enforce minimum of 12
+    const configured = parseInt(process.env.BCRYPT_ROUNDS, 10);
+    const saltRounds = Number.isInteger(configured) && configured >= 12 ? configured : 12;
     this.password = await bcrypt.hash(this.password, saltRounds);
     next();
   } catch (error) {
@@ -102,7 +103,9 @@ userSchema.pre('save', async function(next) {
 
 // Instance method to check password
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  if (!candidatePassword) return false;
+  // `this.password` may be undefined if password was not selected; ensure it's available
+  return await bcrypt.compare(candidatePassword, this.password || '');
 };
 
 // Instance method to check if account is locked

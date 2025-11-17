@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const { logger, auditLog } = require('../config/logger');
+const tokenBlacklist = require('../services/tokenBlacklist.service');
 
 /**
  * Middleware to verify JWT token
@@ -10,10 +11,15 @@ const authenticate = async (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
-      return res.status(401).json({
-        error: 'Access denied. No token provided.',
-        code: 'NO_TOKEN'
-      });
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+    }
+
+    // Check if token has been revoked/blacklisted
+    if (tokenBlacklist && typeof tokenBlacklist.has === 'function') {
+      const blacklisted = await tokenBlacklist.has(token);
+      if (blacklisted) {
+        return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+      }
     }
 
     // Verify token
@@ -30,24 +36,18 @@ const authenticate = async (req, res, next) => {
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
-      return res.status(401).json({
-        error: 'Invalid token. User not found.',
-        code: 'INVALID_TOKEN'
-      });
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
     }
 
     if (!user.isActive) {
-      return res.status(401).json({
-        error: 'Account is deactivated.',
-        code: 'ACCOUNT_DEACTIVATED'
-      });
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
     }
 
     // Check if account is locked
     if (user.isLocked()) {
       return res.status(423).json({
-        error: 'Account is temporarily locked due to multiple failed login attempts.',
-        code: 'ACCOUNT_LOCKED',
+        success: false,
+        message: 'Account is temporarily locked due to multiple failed login attempts.',
         retryAfter: new Date(user.lockoutUntil).toISOString()
       });
     }
@@ -57,25 +57,13 @@ const authenticate = async (req, res, next) => {
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
-    
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        error: 'Invalid token.',
-        code: 'INVALID_TOKEN'
-      });
-    }
-    
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        error: 'Token has expired.',
-        code: 'TOKEN_EXPIRED'
-      });
+
+    // Normalize JWT related errors to a single response for clients
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
     }
 
-    res.status(500).json({
-      error: 'Authentication failed.',
-      code: 'AUTH_ERROR'
-    });
+    res.status(500).json({ success: false, message: 'Authentication failed' });
   }
 };
 
@@ -173,17 +161,11 @@ const validateTokenFormat = (req, res, next) => {
   
   if (!authHeader) {
     // Normalize missing auth header message to match authenticate() for tests
-    return res.status(401).json({
-      error: 'Access denied. No token provided.',
-      code: 'NO_TOKEN'
-    });
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
   }
 
   if (!authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({
-      error: 'Invalid authorization format. Use "Bearer <token>".',
-      code: 'INVALID_AUTH_FORMAT'
-    });
+    return res.status(401).json({ success: false, message: 'Invalid or expired token' });
   }
 
   next();

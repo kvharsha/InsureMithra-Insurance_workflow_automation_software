@@ -20,7 +20,9 @@
     "bench:details": "node tools/load-test/policy-details-autocannon.js",
     "lint": "eslint . --ext .js",
     "lint:ci": "node scripts/save-eslint-report.js",
-    "security:audit": "npm audit --audit-level=high"
+    "security:audit": "npm audit --audit-level=high",
+    "scan:deps": "npm audit --audit-level=moderate",
+    "scan:zap": "bash tools/security/zap-scan.sh"
   },
   "keywords": [
     "insurance",
