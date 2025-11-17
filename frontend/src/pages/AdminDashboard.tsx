@@ -28,6 +28,7 @@ import {
   Tab,
 } from '@mui/material';
 import AdminClaims from './AdminClaims';
+import DowntimeMonitor from './DowntimeMonitor';
 import {
   People,
   AdminPanelSettings,
@@ -293,6 +294,7 @@ const AdminDashboard: React.FC = () => {
             <Tab label="User Management" />
             <Tab label="Activity Monitor" />
             <Tab label="Claims" />
+            <Tab label="Downtime Monitor" />
           </Tabs>
 
           {/* User Management Tab */}
@@ -398,6 +400,12 @@ const AdminDashboard: React.FC = () => {
           {tabValue === 2 && (
             <CardContent>
               <AdminClaims />
+            </CardContent>
+          )}
+
+          {tabValue === 3 && (
+            <CardContent>
+              <DowntimeMonitor />
             </CardContent>
           )}
         </Card>
