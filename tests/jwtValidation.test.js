@@ -83,7 +83,8 @@ test('authenticate rejects expired token', async () => {
 });
 
 test('authenticate rejects missing token', async () => {
-  const req = { header: () => null };
+  // Ensure req.query exists so middleware doesn't throw when checking req.query.token
+  const req = { header: () => null, query: {} };
   const res = mockResponse();
   const next = jest.fn();
 

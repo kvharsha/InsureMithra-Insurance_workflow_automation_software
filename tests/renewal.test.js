@@ -26,16 +26,26 @@ describe('Policy Renewal API', () => {
     await Purchase.deleteMany({});
     await Renewal.deleteMany({});
     
-    // Create a test user
-    testUser = new User({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@test.com',
-      password: 'TestPassword123!',
-      phone: '+1234567890',
-      role: 'user'
-    });
-    await testUser.save();
+    // Register a test user using the API (this will properly hash the password)
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@test.com',
+        password: 'TestPassword123!',
+        phone: '+1234567890',
+        dateOfBirth: '1990-01-01',
+        address: {
+          street: '123 Test St',
+          city: 'Test City',
+          state: 'TS',
+          zipCode: '12345'
+        }
+      });
+
+    // Get the created user
+    testUser = await User.findOne({ email: 'john.doe@test.com' });
 
     // Login to get token
     const loginResponse = await request(app)

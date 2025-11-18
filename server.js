@@ -17,6 +17,15 @@ async function startServer() {
     });
 
     logger.info('Connected to MongoDB successfully');
+    // Start backup scheduler after DB connection
+    try {
+      // require here so file exists after we add scheduler
+      const { startBackupScheduler } = require('./scheduler/backupScheduler');
+      if (typeof startBackupScheduler === 'function') startBackupScheduler();
+      logger.info('Backup scheduler started');
+    } catch (err) {
+      logger.warn('Backup scheduler not started:', err && err.message ? err.message : err);
+    }
 
     // Start server only when running directly
     if (require.main === module) {

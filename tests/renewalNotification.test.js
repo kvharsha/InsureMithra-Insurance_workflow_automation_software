@@ -1,3 +1,11 @@
+// Mock mailer module before loading app/controllers so that all imports use the mock
+const sendEmailMock = jest.fn().mockResolvedValue({ messageId: 'test-msg' });
+jest.mock('../config/mailer', () => ({
+  __esModule: true,
+  getTransporter: jest.fn(() => ({ sendMail: sendEmailMock })),
+  sendEmail: (...args) => sendEmailMock(...args),
+}));
+
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -15,7 +23,7 @@ jest.setTimeout(30000);
 
 describe('Renewal Notification', () => {
   let mongoServer;
-  let sendMailMock;
+  // sendEmailMock is defined above; no spy needed here since we control the mock
 
   beforeAll(async () => {
     // Start in-memory MongoDB
@@ -24,10 +32,8 @@ describe('Renewal Notification', () => {
     process.env.MONGO_URI = uri;
     await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-    // Mock mailer by replacing transporter.sendMail
-    const nodemailer = require('nodemailer');
-    sendMailMock = jest.fn().mockResolvedValue({ messageId: 'test-msg' });
-    nodemailer.createTransport = jest.fn().mockReturnValue({ sendMail: sendMailMock });
+    // reset mock counts
+    sendEmailMock.mockClear();
 
     // Mock payment processing to always succeed
     const paymentService = require('../services/payment.service');
@@ -90,8 +96,13 @@ describe('Renewal Notification', () => {
 
     expect(success).toBe(true);
 
-    // nodemailer sendMail should have been called
-    expect(sendMailMock).toHaveBeenCalled();
+    // Wait briefly for async email to be sent after status is updated
+    const maxEmailTries = 30;
+    for (let i = 0; i < maxEmailTries; i++) {
+      if (sendEmailMock.mock.calls.length > 0) break;
+      await new Promise(r => setTimeout(r, 100));
+    }
+    expect(sendEmailMock).toHaveBeenCalled();
 
     // Log file should contain a renewal success entry
     const logPath = path.join(__dirname, '..', 'logs', 'renewals.log');

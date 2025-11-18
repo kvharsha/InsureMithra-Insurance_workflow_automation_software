@@ -1,12 +1,44 @@
 const Redis = require('ioredis');
+const { logger } = require('../config/logger');
 
 // Simple in-memory blacklist with optional Redis backing
 class TokenBlacklist {
   constructor() {
     this.store = new Map(); // token -> expireAt(ms)
+    this.redis = null;
 
     if (process.env.REDIS_URL) {
-      this.redis = new Redis(process.env.REDIS_URL);
+      try {
+        this.redis = new Redis(process.env.REDIS_URL, {
+          maxRetriesPerRequest: 3,
+          enableReadyCheck: true,
+          retryStrategy(times) { return Math.min(times * 50, 2000); }
+        });
+
+        this.redis.on('connect', () => {
+          logger.info('✅ TokenBlacklist Redis connected');
+        });
+
+        // handle errors to avoid unhandled error events
+        this.redis.on('error', (err) => {
+          logger.warn(`⚠️ TokenBlacklist Redis error: ${err && err.message ? err.message : err}`);
+          // fallback to in-memory store on errors
+          try { 
+            this.redis.disconnect(); 
+          } catch (_e) {
+            // ignore disconnect errors
+          }
+          this.redis = null;
+        });
+
+        this.redis.on('close', () => {
+          logger.warn('⚠️ TokenBlacklist Redis connection closed; using in-memory fallback');
+          this.redis = null;
+        });
+      } catch (e) {
+        logger.warn('Failed to initialize TokenBlacklist Redis client, using in-memory fallback', e && e.message ? e.message : e);
+        this.redis = null;
+      }
     }
   }
 

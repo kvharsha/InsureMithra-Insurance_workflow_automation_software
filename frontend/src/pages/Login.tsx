@@ -78,10 +78,11 @@ const Login: React.FC = () => {
 
     try {
       const user = await login(formData.email, formData.password);
-      if (user?.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
-      await login(formData.email, formData.password);
-      navigate('/dashboard');
+      if (user?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       // Error is handled by AuthContext
     }

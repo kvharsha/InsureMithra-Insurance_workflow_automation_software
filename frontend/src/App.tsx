@@ -15,6 +15,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminBackups = lazy(() => import('./pages/AdminBackups'));
 const PolicySearch = lazy(() => import('./pages/PolicySearch'));
 const Policies = lazy(() => import('./pages/Policies'));
 const ComparePolicies = lazy(() => import('./pages/ComparePolicies'));
@@ -185,6 +186,11 @@ function App() {
                 <Route path="/admin" element={
                   <ProtectedRoute allowedRoles={["admin"]}>
                     <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/backups" element={
+                  <ProtectedRoute allowedRoles={["admin"]}>
+                    <AdminBackups />
                   </ProtectedRoute>
                 } />
                 

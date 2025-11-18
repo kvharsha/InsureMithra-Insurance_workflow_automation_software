@@ -305,9 +305,12 @@ const forgotPassword = async (req, res) => {
     // Log that a reset token was created (helpful during debugging)
     logger.info(`Password reset requested for: ${email} (reset token saved in DB)`);
 
-    res.json({
+    // In non-production environments return the reset token in the response to aid debugging
+    const devResponse = (process.env.NODE_ENV === 'production') ? {} : { debugResetToken: resetToken };
+
+    res.json(Object.assign({
       message: 'If an account with that email exists, a password reset link has been sent.'
-    });
+    }, devResponse));
 
   } catch (error) {
     logger.error('Forgot password error:', error);
