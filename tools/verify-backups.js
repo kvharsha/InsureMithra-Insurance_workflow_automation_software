@@ -84,10 +84,18 @@ async function run() {
     } catch (err) {
       console.error(`Verification failed for ${b.name}:`, err.message || err);
       logger.error('Verification failed for backup', b.name, err);
-      try { await fs.remove(tmp); } catch (e) {}
+      try { 
+        await fs.remove(tmp); 
+      } catch (_e) {
+        // ignore cleanup errors
+      }
       process.exitCode = 2;
     } finally {
-      try { await fs.remove(tmp); } catch (e) { /* ignore */ }
+      try { 
+        await fs.remove(tmp); 
+      } catch (_e) { 
+        // ignore cleanup errors 
+      }
     }
   }
 

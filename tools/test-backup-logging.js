@@ -3,7 +3,6 @@
  * Run with: node tools/test-backup-logging.js
  */
 
-const path = require('path');
 require('dotenv').config();
 
 // Mock logger to capture log calls

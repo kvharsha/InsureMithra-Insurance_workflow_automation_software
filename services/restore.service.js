@@ -33,12 +33,10 @@ function runCommand(cmd, args, opts = {}) {
   });
 }
 
-async function nodeRestoreFallback(dbPath, mongoUri) {
+async function nodeRestoreFallback(dbPath, _mongoUri) {
   // dbPath should contain either a DB-named folder or collection JSON files
   // We'll inspect and insert JSON files into the target DB
   const db = mongoose.connection.db;
-  const dbName = mongoose.connection.name || (process.env.DB_NAME || 'insuremithra');
-  // if provided mongoUri is for a different DB name, respect that
   // We'll use the established mongoose connection
 
   // Walk dbPath to find JSON files
@@ -63,7 +61,9 @@ async function nodeRestoreFallback(dbPath, mongoUri) {
     if (Array.isArray(docs) && docs.length) {
       try {
         await collection.deleteMany({});
-      } catch (e) { /* ignore */ }
+      } catch (_e) { 
+        // ignore deletion errors
+      }
       // Insert documents; ensure _id fields remain if present
       await collection.insertMany(docs);
     }

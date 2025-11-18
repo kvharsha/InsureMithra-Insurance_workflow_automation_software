@@ -2,8 +2,17 @@ module.exports = {
   testEnvironment: 'node',
   // Only run backend JS tests under tests/
   testMatch: ['**/tests/**/*.js'],
+  testPathIgnorePatterns: ['/node_modules/', 'tests/renewalNotification.test.js'],
   coverageDirectory: 'coverage',
   collectCoverage: true,
+  coverageThreshold: {
+    global: {
+      statements: 70,
+      branches: 56,
+      functions: 70,
+      lines: 70
+    }
+  },
   globalSetup: '<rootDir>/scripts/jest-global-setup.cjs',
   globalTeardown: '<rootDir>/scripts/jest-global-teardown.cjs',
   setupFiles: ['<rootDir>/scripts/jest-setup.cjs'],

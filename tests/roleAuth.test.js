@@ -22,23 +22,34 @@ describe('middleware/roleAuth', () => {
   beforeEach(async () => {
     await User.deleteMany({});
 
-    regularUser = new User({
-      firstName: 'Reg',
-      lastName: 'User',
-      email: 'reg.user@test.com',
-      password: 'TestPass123!',
-      role: 'user'
-    });
-    await regularUser.save();
+    // Register regular user
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Reg',
+        lastName: 'User',
+        email: 'reg.user@test.com',
+        password: 'TestPass123!',
+        role: 'user',
+        dateOfBirth: '1990-01-01'
+      })
+      .expect(201);
 
-    adminUser = new User({
-      firstName: 'Admin',
-      lastName: 'User',
-      email: 'admin.user@test.com',
-      password: 'AdminPass123!',
-      role: 'admin'
-    });
-    await adminUser.save();
+    // Register admin then elevate
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Admin',
+        lastName: 'User',
+        email: 'admin.user@test.com',
+        password: 'AdminPass123!',
+        role: 'user',
+        dateOfBirth: '1990-01-01'
+      })
+      .expect(201);
+
+    adminUser = await User.findOneAndUpdate({ email: 'admin.user@test.com' }, { role: 'admin' }, { new: true });
+    regularUser = await User.findOne({ email: 'reg.user@test.com' });
 
     const regRes = await request(app).post('/api/auth/login').send({ email: regularUser.email, password: 'TestPass123!' });
     regularToken = regRes.body.token;
@@ -76,6 +87,8 @@ describe('middleware/roleAuth', () => {
       .expect(401);
 
     // The authenticate middleware returns a structured error
-    expect(res.body.error).toBeDefined();
+    expect(res.body).toBeDefined();
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBeDefined();
   });
 });

@@ -23,7 +23,11 @@ class TokenBlacklist {
         this.redis.on('error', (err) => {
           logger.warn(`⚠️ TokenBlacklist Redis error: ${err && err.message ? err.message : err}`);
           // fallback to in-memory store on errors
-          try { this.redis.disconnect(); } catch (_) {}
+          try { 
+            this.redis.disconnect(); 
+          } catch (_e) {
+            // ignore disconnect errors
+          }
           this.redis = null;
         });
 

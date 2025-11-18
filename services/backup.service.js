@@ -124,7 +124,6 @@ async function runBackupJob() {
       await runCommand('mongodump', ['--uri', mongoUri, '--out', dbOut]);
     } catch (err) {
       // If spawn couldn't find the binary, perform a Node fallback dump
-      const isEno = err && (err.code === 'ENOENT' || /ENOENT/i.test(err.message));
       logger.warn('mongodump failed or not found, falling back to Node dump', err && err.message ? err.message : err);
       logEntry('mongodump failed or not found; using Node fallback');
       await nodeBackupFallback(dbOut);

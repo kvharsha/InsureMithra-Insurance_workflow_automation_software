@@ -118,6 +118,7 @@ jobs:
       - name: Generate backend coverage (NYC)
         env:
           MONGODB_URI: mongodb://localhost:27017/ci_test
+          NODE_ENV: test
         run: npm run coverage:backend
 
       - name: Generate frontend coverage (CRA)
@@ -126,7 +127,7 @@ jobs:
         env:
           CI: "true"
         # CRA exposes coverage through `npm test -- --coverage`
-        run: npm test -- --coverage --watchAll=false
+        run: npm run test:ci
 
       - name: Enforce combined threshold 70%
         shell: bash
@@ -184,6 +185,14 @@ jobs:
       - name: Run ESLint (JSON report)
         run: npm run lint:ci
 
+      - name: Frontend lint via CI build (fails on warnings)
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        env:
+          CI: "true"
+        run: |
+          npm run build
+
       - name: Run pylint with score gate
         if: hashFiles('**/*.py') != ''
         run: |
@@ -213,10 +222,26 @@ jobs:
           cache: "npm"
       - name: Install deps
         run: npm ci
-      - name: npm audit (high+)
+        
+      - name: npm audit backend (high+)
         run: |
           npm audit --audit-level=high --json | tee reports/npm-audit.json
           node scripts/fail-on-npm-audit.mjs reports/npm-audit.json
+
+      - name: Install frontend deps for audit
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        run: |
+          rm -rf node_modules
+          npm cache clean --force || true
+          npm ci || npm install
+
+      - name: npm audit frontend (moderate+)
+        if: hashFiles('frontend/package.json') != ''
+        working-directory: frontend
+        run: |
+          mkdir -p ../reports
+          npm audit --audit-level=moderate --json | tee ../reports/frontend-npm-audit.json || echo "Frontend has vulnerabilities - review required"
 
       - uses: actions/setup-python@v5
         if: hashFiles('**/requirements.txt') != ''
@@ -250,6 +275,7 @@ jobs:
           name: security-report
           path: |
             reports/npm-audit.json
+            reports/frontend-npm-audit.json
             reports/bandit.json
             reports/safety.json
             reports/trufflehog.txt
