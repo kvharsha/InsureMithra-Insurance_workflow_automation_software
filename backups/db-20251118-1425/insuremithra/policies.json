@@ -1,0 +1,171 @@
+[
+  {
+    "_id": "69198cbcf815799d73cf2589",
+    "name": "Two Wheeler Basic",
+    "type": "2W",
+    "model": "Hero Splendor",
+    "insurer": "HDFC Ergo",
+    "premium": 1200,
+    "coverage": "Third-party liability",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Roadside assistance"
+    ],
+    "createdAt": "2025-11-16T08:35:08.080Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf258a",
+    "name": "Premium Car Plan",
+    "type": "4W",
+    "model": "Maruti Swift",
+    "insurer": "ICICI Lombard",
+    "premium": 3500,
+    "coverage": "Own + Third-party",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Zero Depreciation",
+      "Personal accident cover"
+    ],
+    "createdAt": "2025-11-16T08:35:08.081Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf258b",
+    "name": "Car Elite Plan",
+    "type": "4W",
+    "model": "Hyundai i20",
+    "insurer": "Tata AIG",
+    "premium": 4800,
+    "coverage": "Comprehensive",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Cashless claims",
+      "Damage repair"
+    ],
+    "createdAt": "2025-11-16T08:35:08.081Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf258c",
+    "name": "Health Secure Silver",
+    "type": "Health",
+    "model": "Standard",
+    "insurer": "Star Health",
+    "premium": 2500,
+    "coverage": "Hospitalization",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "No Claim Bonus",
+      "Free checkups"
+    ],
+    "createdAt": "2025-11-16T08:35:08.081Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf258d",
+    "name": "Health Secure Gold",
+    "type": "Health",
+    "model": "Premium",
+    "insurer": "HDFC ERGO",
+    "premium": 4100,
+    "coverage": "Comprehensive Family Cover",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Free annual checkups",
+      "Home care"
+    ],
+    "createdAt": "2025-11-16T08:35:08.082Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf258e",
+    "name": "Life Protect Plan",
+    "type": "Life",
+    "model": "Standard",
+    "insurer": "LIC India",
+    "premium": 2900,
+    "coverage": "Life insurance + accident",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Maturity benefit",
+      "Tax rebate"
+    ],
+    "createdAt": "2025-11-16T08:35:08.082Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf258f",
+    "name": "Life Elite Plan",
+    "type": "Life",
+    "model": "Pro",
+    "insurer": "ICICI Prudential",
+    "premium": 4900,
+    "coverage": "Life + Health rider",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Critical illness cover",
+      "Loan facility"
+    ],
+    "createdAt": "2025-11-16T08:35:08.082Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf2590",
+    "name": "Travel Shield",
+    "type": "Travel",
+    "model": "Global",
+    "insurer": "Religare",
+    "premium": 1800,
+    "coverage": "Flight delay, baggage loss",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Emergency assistance",
+      "Medical support"
+    ],
+    "createdAt": "2025-11-16T08:35:08.082Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf2591",
+    "name": "Bike Secure Gold",
+    "type": "2W",
+    "model": "Royal Enfield",
+    "insurer": "Bajaj Allianz",
+    "premium": 1900,
+    "coverage": "Comprehensive",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Own damage",
+      "Third-party"
+    ],
+    "createdAt": "2025-11-16T08:35:08.082Z",
+    "__v": 0
+  },
+  {
+    "_id": "69198cbcf815799d73cf2592",
+    "name": "Health Ultra",
+    "type": "Health",
+    "model": "Platinum",
+    "insurer": "Aditya Birla Health",
+    "premium": 5300,
+    "coverage": "All-inclusive",
+    "tenure": "1 year",
+    "exclusions": [],
+    "benefits": [
+      "Free wellness programs",
+      "Unlimited consultations"
+    ],
+    "createdAt": "2025-11-16T08:35:08.082Z",
+    "__v": 0
+  }
+]

@@ -8,7 +8,11 @@ const tokenBlacklist = require('../services/tokenBlacklist.service');
  */
 const authenticate = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Support token from Authorization header or query param (for download links)
+    let token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token && req.query.token) {
+      token = req.query.token;
+    }
     
     if (!token) {
       return res.status(401).json({ success: false, message: 'Invalid or expired token' });
@@ -31,9 +35,11 @@ const authenticate = async (req, res, next) => {
       });
     }
     const decoded = jwt.verify(token, secret);
-    
+
+    // Support tokens that use `userId`, `id` or `sub` in payload
+    const userId = decoded.userId || decoded.id || decoded.sub;
     // Find user and check if still active
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await User.findById(userId).select('-password');
     
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid or expired token' });

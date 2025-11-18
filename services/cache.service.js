@@ -13,6 +13,7 @@ class CacheService {
     this.redis = null;
     this.lruCache = null;
     this.isRedisAvailable = false;
+    this._lastRedisWarnAt = 0;
     this.initializeCache();
   }
 
@@ -22,8 +23,10 @@ class CacheService {
   initializeCache() {
     const redisUrl = process.env.REDIS_URL;
     
-    // Try to connect to Redis if URL is provided
-    if (redisUrl) {
+    // Optionally allow disabling Redis attempts via USE_REDIS=false
+    const useRedis = (process.env.USE_REDIS || 'true').toLowerCase() !== 'false';
+    // Try to connect to Redis if URL is provided and enabled
+    if (redisUrl && useRedis) {
       try {
         this.redis = new Redis(redisUrl, {
           maxRetriesPerRequest: 3,
@@ -37,17 +40,32 @@ class CacheService {
         this.redis.on('connect', () => {
           this.isRedisAvailable = true;
           logger.info('✅ Redis cache connected successfully');
+          // reset warn timestamp on successful connect
+          this._lastRedisWarnAt = 0;
         });
 
         this.redis.on('error', (err) => {
           this.isRedisAvailable = false;
-          logger.warn(`⚠️  Redis connection error: ${err.message}. Falling back to LRU cache.`);
+          // throttle frequent warnings to avoid log spam
+          try {
+            const now = Date.now();
+            const thresh = parseInt(process.env.REDIS_WARN_THROTTLE_MS) || 30000; // 30s
+            if (now - this._lastRedisWarnAt > thresh) {
+              logger.warn(`⚠️  Redis connection error: ${err && err.message ? err.message : err}. Falling back to LRU cache.`);
+              this._lastRedisWarnAt = now;
+            }
+          } catch (e) { logger.warn('Redis error (unable to throttle):', e); }
           this.initializeLRUCache();
         });
 
         this.redis.on('close', () => {
           this.isRedisAvailable = false;
-          logger.warn('⚠️  Redis connection closed. Using LRU cache fallback.');
+          const now = Date.now();
+          const thresh = parseInt(process.env.REDIS_WARN_THROTTLE_MS) || 30000;
+          if (now - this._lastRedisWarnAt > thresh) {
+            logger.warn('⚠️  Redis connection closed. Using LRU cache fallback.');
+            this._lastRedisWarnAt = now;
+          }
         });
 
       } catch (error) {
@@ -55,7 +73,7 @@ class CacheService {
         this.initializeLRUCache();
       }
     } else {
-      logger.info('ℹ️  No REDIS_URL configured. Using in-memory LRU cache.');
+      logger.info('ℹ️  No REDIS_URL configured or Redis disabled. Using in-memory LRU cache.');
       this.initializeLRUCache();
     }
   }

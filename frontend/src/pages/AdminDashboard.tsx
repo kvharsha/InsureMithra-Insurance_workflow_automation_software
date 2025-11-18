@@ -40,6 +40,7 @@ import {
   TrendingUp,
   Assessment,
 } from '@mui/icons-material';
+import { Backup as BackupIcon } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { profileAPI } from '../services/api';
 
@@ -197,6 +198,15 @@ const AdminDashboard: React.FC = () => {
           >
             User View
           </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<BackupIcon />}
+              onClick={() => navigate('/admin/backups')}
+              sx={{ mr: 2 }}
+            >
+              Backups
+            </Button>
         </Box>
 
         {error && (
