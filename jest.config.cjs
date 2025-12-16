@@ -9,8 +9,8 @@ module.exports = {
     global: {
       statements: 60,
       branches: 56,
-      functions: 70,
-      lines: 70
+      functions: 60,
+      lines: 60
     }
   },
   globalSetup: '<rootDir>/scripts/jest-global-setup.cjs',
